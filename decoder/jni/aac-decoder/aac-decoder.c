@@ -86,7 +86,7 @@ static int aacd_probe(unsigned char *buffer, int len)
 
     AACD_WARN( "probe() could not find ADTS start" );
 
-    return 0;
+    return -1;
 }
 
 
@@ -341,8 +341,11 @@ static void aacd_decode( AACDInfo *info, jshort *samples, jint outLen )
             }
 
             int pos = aacd_probe( info->buffer+1, info->bytesleft-1 );
-            info->buffer += pos+1;
-            info->bytesleft -= pos+1;
+
+            if (pos >= 0) {
+                info->buffer += pos+1;
+                info->bytesleft -= pos+1;
+            }
         }
         while (--attempts > 0);
 
@@ -394,6 +397,15 @@ JNIEXPORT jint JNICALL Java_com_spoledge_aacdecoder_Decoder_nativeStart
     unsigned long buffer_size = info->bytesleft;
 
     int pos = aacd_probe( buffer, buffer_size );
+
+    if (pos < 0)
+    {
+        AACD_ERROR( "start() failed - ADTS sync word not found" );
+        aacd_stop( info );
+
+        return 0;
+    }
+
     buffer += pos;
     buffer_size -= pos;
 
