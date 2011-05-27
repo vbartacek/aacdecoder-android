@@ -78,13 +78,9 @@ Requirements:
 Preparing OpenCORE sources:
 -------------------------
 
-NOTE: You can skip this if you download the "full" zip.
-    The full zipped version already contains the OpenCORE source code.
+    You have to download OpenCORE aacdec sources either by:
 
-    If you download only sources, or check-out the sources from SVN,
-    then you have also download OpenCORE aacdec sources either by:
-
-        * downloading OpneCORE sources from our "Downloads" tab:
+        * downloading OpenCORE sources from our "Downloads" tab:
             http://code.google.com/p/aacplayer-android/downloads/list
 
         * checking-out OpenCORE aacdec sources from the original project:
