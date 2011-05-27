@@ -1,0 +1,29 @@
+#summary How to build the the whole project - libs and apk.
+#labels Featured
+
+= System Requirements =
+
+  * Android SDK - at least platform 3 (Android 1.5)
+  * Android NDK - rev 4
+  * (Apache Ant - http://ant.apache.org/)
+
+
+= Getting OpenCORE aacdec Sources =
+
+You have to download OpenCORE aacdec sources either by:
+  * downloading OpenCORE sources from the [Downloads] tab
+  * checking-out OpenCORE aacdec sources from the original project: http://code.google.com/p/opencore-aacdec/
+
+If you download a zip file, then please unzip it somewhere.
+
+
+= Compiling =
+
+  # copy sample.ant.properties to .ant.properties and edit .ant.properties:
+    * path to Android SDK
+    * path to Android NDK
+    * path to OpenCORE aacdec source
+  # run ant
+  # use the libraries and/or the APK:
+    * install the APK on the emulator or a device: adb install player/bin/AACMusicPlayer-debug.apk
+    * the Java and shared libraries you find in decoder/libs
