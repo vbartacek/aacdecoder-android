@@ -65,7 +65,7 @@
 #define PACKAGE_VERSION "1.0.0"
 
 /* Parametric-Stereo decoding */
-#define PARAMETRICSTEREO 1
+/* #undef PARAMETRICSTEREO */
 
 /* GCC ARM v4 */
 /* #undef PV_ARM_GCC_V4 */
