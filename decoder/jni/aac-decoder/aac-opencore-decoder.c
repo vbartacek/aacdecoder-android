@@ -101,9 +101,10 @@ static long aacd_opencore_start( AACDInfo *info, unsigned char *buffer, unsigned
 
     int32_t status;
     int frameDecoded = 0;
+    int attempts = 16;
 
     /* pre-init search adts sync */
-    while (pExt->frameLength == 0) {
+    while (pExt->frameLength == 0 && attempts--) {
         pExt->pInputBuffer              = buffer;
         pExt->inputBufferMaxLength      = buffer_size;
         pExt->inputBufferCurrentLength  = buffer_size;
@@ -126,10 +127,16 @@ static long aacd_opencore_start( AACDInfo *info, unsigned char *buffer, unsigned
             }
         }
 
-        if (buffer_size <= 64) break;
+        if (buffer_size <= PVMP4AUDIODECODER_INBUFSIZE) break;
     }
 
-    if (!frameDecoded) status = PVMP4AudioDecodeFrame(pExt, oc->pMem);
+    if (!frameDecoded)
+    {
+        AACD_INFO( "start() No stream info available - trying to decode a frame" );
+
+        if (buffer_size >= PVMP4AUDIODECODER_INBUFSIZE) status = PVMP4AudioDecodeFrame(pExt, oc->pMem);
+        else AACD_WARN( "start() Input buffer too small" );
+    }
 
     free(pExt->pOutputBuffer);
 
