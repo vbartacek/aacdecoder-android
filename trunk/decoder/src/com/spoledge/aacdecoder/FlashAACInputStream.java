@@ -1,13 +1,19 @@
+/* 
+    FlashAACInputStream - provides an InputStream for use with FlashAACPlayer within aacdecoder-android.
+    Allows reading of FLV-wrapped raw AAC data into playable buffers of AAC frames with ADTS headers
+
+    20-09-2011
+    Author: Trevor Lovett (trevlovett (at) gmail.com)
+    Based in part upon FLV_Extract (http://moitah.net/)
+*/
+
 package com.spoledge.aacdecoder;
 
 import android.util.Log;
 
 import java.io.*;
-
 import java.net.URL;
 import java.net.URLConnection;
-
-// reads from an FLV stream, extracting AAC frames and prepending ADTS headers to them
 
 public class FlashAACInputStream extends InputStream {
     private DataInputStream dis = null;
@@ -23,11 +29,11 @@ public class FlashAACInputStream extends InputStream {
 
     public FlashAACInputStream(InputStream istream) throws IOException {
         dis = new DataInputStream(istream);
-        // Is stream a Flash Video stream
+        // Check that stream is a Flash Video stream
         if ((char)dis.readByte() != 'F' || (char)dis.readByte() != 'L' || (char)dis.readByte() != 'V')
             throw new IOException("The file is not a FLV file.");
 
-        // Is audio stream exists in the video stream
+        // Check if audio stream exists in the video stream
         byte version = dis.readByte();
         byte exists = dis.readByte();
 
@@ -44,6 +50,10 @@ public class FlashAACInputStream extends InputStream {
         read(b, 0, 1);
         return ((int)b[0]) & 0xFF;
     }
+
+    // Reads a frame at a time.  If the entire frame cannot be accomodated by b,
+    // function saves the remainder in backBuffer for use in next call.
+    // returns: number of bytes read into b
 
     @Override
     public int read(byte[] b, int off, int len) throws IOException {
@@ -96,6 +106,7 @@ public class FlashAACInputStream extends InputStream {
         }
     }
 
+    // reads FLV Tag data
     private int readFrame(byte[] buf) throws IOException {
         int previousTagSize = dis.readInt(); // PreviousTagSize0 skipping
 
@@ -116,8 +127,7 @@ public class FlashAACInputStream extends InputStream {
         return fillBuffer(buf, (int)dataSize);
     }
 
-    // returns true if header was there and was read
-    // false if not
+    // returns true if header present, false if not
     private boolean readAACHeader() throws IOException {
         byte head = dis.readByte();
         if (head != 0) return false;
@@ -144,6 +154,7 @@ public class FlashAACInputStream extends InputStream {
         return true;
     }
 
+    // puts a complete AAC frame with ADTS header in buf, ready for playing, returns size of frame in bytes
     private int fillBuffer(byte[] buf, int dataSize) throws IOException {
         if (readAACHeader()) return 0;
 
