@@ -61,6 +61,7 @@
 			bootclasspathref="android.path"
 			classpathref="compile.path"
 			deprecation="true"
+			includeantruntime="false"
 		>
 			<src path="${src.java.dir}"/>
 		</javac>
