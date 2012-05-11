@@ -245,7 +245,16 @@ public class PCMFeed implements Runnable, AudioTrack.OnPlaybackPositionUpdateLis
      */
     public void onPeriodicNotification( AudioTrack track ) {
         if (playerCallback != null) {
-            int buffered = writtenTotal - track.getPlaybackHeadPosition()*channels;
+            int buffered = 0;
+
+            try {
+                buffered = writtenTotal - track.getPlaybackHeadPosition()*channels;
+            }
+            catch (IllegalStateException e) {
+                Log.e( LOG, "onPeriodicNotification(): illegal state=" + track.getPlayState());
+                return;
+            }
+
             int ms = samplesToMs( buffered, sampleRate, channels );
 
             playerCallback.playerPCMFeedBuffer( isPlaying, ms, bufferSizeInMs );
