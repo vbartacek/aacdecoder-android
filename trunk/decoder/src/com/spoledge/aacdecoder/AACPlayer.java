@@ -71,6 +71,7 @@ public class AACPlayer {
     ////////////////////////////////////////////////////////////////////////////
 
     protected boolean stopped;
+    protected boolean metadataEnabled = true;
 
     protected int audioBufferCapacityMs;
     protected int decodeBufferCapacityMs;
@@ -208,6 +209,23 @@ public class AACPlayer {
 
 
     /**
+     * Returns the flag if metadata information is enabeld / sent to PlayerCallback.
+     */
+    public boolean getMetadataEnabled() {
+        return metadataEnabled;
+    }
+
+
+    /**
+     * Sets the flag if metadata information is enabeld / sent to PlayerCallback.
+     * This is enabled by default.
+     */
+    public void setMetadataEnabled( boolean metadataEnabled ) {
+        this.metadataEnabled = metadataEnabled;
+    }
+
+
+    /**
      * Plays a stream asynchronously.
      * This method starts a new thread.
      * @param url the URL of the stream or file
@@ -256,12 +274,13 @@ public class AACPlayer {
     public void play( String url, int expectedKBitSecRate ) throws Exception {
         if (url.indexOf( ':' ) > 0) {
             URLConnection cn = new URL( url ).openConnection();
-            cn.connect();
 
-            dumpHeaders( cn );
+            prepareConnection( cn );
+            cn.connect();
+            processHeaders( cn );
 
             // TODO: try to get the expectedKBitSecRate from headers
-            play( cn.getInputStream(), expectedKBitSecRate);
+            play( getInputStream( cn ), expectedKBitSecRate);
         }
         else play( new FileInputStream( url ), expectedKBitSecRate );
     }
@@ -428,11 +447,69 @@ public class AACPlayer {
     }
 
 
+    /**
+     * Prepares the connection.
+     * This method is called before a connection is opened.
+     * Actually sets "Icy-MetaData" header to "1" if metadata are enabled.
+     */
+    protected void prepareConnection( URLConnection conn ) {
+        // request for dynamic metadata:
+        if (metadataEnabled) conn.setRequestProperty("Icy-MetaData", "1");
+    }
+
+
+    /**
+     * Gets the input stream from the connection.
+     * Actually returns the underlying stream or IcyInputStream.
+     */
+    protected InputStream getInputStream( URLConnection conn ) throws Exception {
+        String smetaint = conn.getHeaderField( "icy-metaint" );
+        InputStream ret = conn.getInputStream();
+
+        if (!metadataEnabled) {
+            Log.i( LOG, "Metadata not enabled" );
+        }
+        else if (smetaint != null) {
+            int period = -1;
+            try {
+                period = Integer.parseInt( smetaint );
+            }
+            catch (Exception e) {
+                Log.e( LOG, "The icy-metaint '" + smetaint + "' cannot be parsed: '" + e );
+            }
+
+            if (period > 0) {
+                Log.i( LOG, "The dynamic metainfo is sent every " + period + " bytes" );
+
+                ret = new IcyInputStream( ret, period, playerCallback );
+            }
+        }
+        else Log.i( LOG, "This stream does not provide dynamic metainfo" );
+
+        return ret;
+    }
+
+
+    /**
+     * This method is called after the connection is established.
+     */
+    protected void processHeaders( URLConnection cn ) {
+        dumpHeaders( cn );
+
+        if (playerCallback != null) {
+            for (java.util.Map.Entry<String, java.util.List<String>> me : cn.getHeaderFields().entrySet()) {
+                for (String s : me.getValue()) {
+                    playerCallback.playerMetadata( me.getKey(), s );
+                }
+            }
+        }
+    }
+
+
     protected void dumpHeaders( URLConnection cn ) {
         for (java.util.Map.Entry<String, java.util.List<String>> me : cn.getHeaderFields().entrySet()) {
             for (String s : me.getValue()) {
                 Log.d( LOG, "header: key=" + me.getKey() + ", val=" + s);
-                
             }
         }
     }

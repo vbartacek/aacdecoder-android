@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<string name="app_name">AAC Hudební Přehrávač</string>
+	<string name="app_name">AAC MP3 Přehrávač</string>
 	<string name="button_close">Zavřít</string>
 	<string name="button_play">Přehrát</string>
 	<string name="button_stop">Zastavit</string>

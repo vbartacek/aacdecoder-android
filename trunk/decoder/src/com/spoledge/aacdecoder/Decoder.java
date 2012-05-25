@@ -180,6 +180,19 @@ public class Decoder {
 
 
     /**
+     * Creates a new decoder by its name.
+     * @return the decoder or null if no such decoder is found
+     */
+    public static Decoder createByName( String name ) {
+        loadLibrary();
+
+        int aacdw = nativeDecoderGetByName( name );
+
+        return aacdw != 0 ? create( aacdw ) : null;
+    }
+
+
+    /**
      * Creates a new decoder.
      * @param decoder the poiter to a C struct AACDDecoder. 0 means that the default OpenCORE aacdec
      *      decoder will be used.
@@ -277,6 +290,14 @@ public class Decoder {
      * @param aacdw the pointer to the C struct
      */
     protected native void nativeStop( int aacdw );
+
+
+    /**
+     * Returns the decoder pointer struct or NULL.
+     * @param name the name of the decoder
+     */
+    protected static native int nativeDecoderGetByName( String name );
+
 
 }
 

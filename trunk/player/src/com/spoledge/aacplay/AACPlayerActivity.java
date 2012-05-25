@@ -37,7 +37,7 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.spoledge.aacdecoder.AACPlayer;
+import com.spoledge.aacdecoder.MultiPlayer;
 import com.spoledge.aacdecoder.PlayerCallback;
 
 
@@ -51,12 +51,15 @@ public class AACPlayerActivity extends Activity implements View.OnClickListener,
     private Button btnPlay;
     private Button btnStop;
     private TextView txtStatus;
+    private TextView txtMetaTitle;
+    private TextView txtMetaGenre;
+    private TextView txtMetaUrl;
     private EditText txtBufAudio;
     private EditText txtBufDecode;
     private ProgressBar progress;
     private Handler uiHandler;
 
-    private AACPlayer aacPlayer;
+    private MultiPlayer multiPlayer;
 
 
     ////////////////////////////////////////////////////////////////////////////
@@ -144,6 +147,30 @@ public class AACPlayerActivity extends Activity implements View.OnClickListener,
     }
 
 
+    public void playerMetadata( final String key, final String value ) {
+        TextView tv = null;
+
+        if ("StreamTitle".equals( key ) || "icy-name".equals( key ) || "icy-description".equals( key )) {
+            tv = txtMetaTitle;
+        }
+        else if ("StreamUrl".equals( key ) || "icy-url".equals( key )) {
+            tv = txtMetaUrl;
+        }
+        else if ("icy-genre".equals( key )) {
+            tv = txtMetaGenre;
+        }
+        else return;
+
+        final TextView ftv = tv;
+
+        uiHandler.post( new Runnable() {
+            public void run() {
+                ftv.setText( value );
+            }
+        });
+    }
+
+
     ////////////////////////////////////////////////////////////////////////////
     // OnClickListener
     ////////////////////////////////////////////////////////////////////////////
@@ -179,13 +206,16 @@ public class AACPlayerActivity extends Activity implements View.OnClickListener,
 
         urlView = (AutoCompleteTextView) findViewById( R.id.view_main_edit_url );
         txtStatus = (TextView) findViewById( R.id.view_main_text_status );
+        txtMetaTitle = (TextView) findViewById( R.id.view_main_text_meta_title );
+        txtMetaGenre = (TextView) findViewById( R.id.view_main_text_meta_genre );
+        txtMetaUrl = (TextView) findViewById( R.id.view_main_text_meta_url );
         txtBufAudio = (EditText) findViewById( R.id.view_main_text_bufaudio );
         txtBufDecode = (EditText) findViewById( R.id.view_main_text_bufdecode );
 
         progress = (ProgressBar) findViewById( R.id.view_main_progress );
 
-        txtBufAudio.setText( String.valueOf( AACPlayer.DEFAULT_AUDIO_BUFFER_CAPACITY_MS ));
-        txtBufDecode.setText( String.valueOf( AACPlayer.DEFAULT_DECODE_BUFFER_CAPACITY_MS ));
+        txtBufAudio.setText( String.valueOf( MultiPlayer.DEFAULT_AUDIO_BUFFER_CAPACITY_MS ));
+        txtBufDecode.setText( String.valueOf( MultiPlayer.DEFAULT_DECODE_BUFFER_CAPACITY_MS ));
 
         btnPlay.setOnClickListener( this );
         btnStop.setOnClickListener( this );
@@ -198,6 +228,7 @@ public class AACPlayerActivity extends Activity implements View.OnClickListener,
             history.addUrl( "http://netshow.play.cz:8000/crocb32aac" );
             history.addUrl( "http://62.44.1.26:8000/cro2-128aac" );
             history.addUrl( "http://2483.live.streamtheworld.com:80/KFTZFMAACCMP3" );
+            history.addUrl( "http://2083.live.streamtheworld.com:80/KFWRFM_SC" );
             history.addUrl( "http://http.yourmuze.com:8000/play/paradise/l.aac" );
             history.addUrl( "http://http.yourmuze.com:8000/play/paradise/m.aac" );
             history.addUrl( "http://http.yourmuze.com:8000/play/paradise/h.aac" );
@@ -228,15 +259,21 @@ public class AACPlayerActivity extends Activity implements View.OnClickListener,
 
     private void start() {
         stop();
-        aacPlayer = new AACPlayer( this, getInt( txtBufAudio ), getInt( txtBufDecode ));
-        aacPlayer.playAsync( getUrl());
+
+        // we cannot do it in playerStarted() - it is too late:
+        txtMetaTitle.setText("");
+        txtMetaGenre.setText("");
+        txtMetaUrl.setText("");
+
+        multiPlayer = new MultiPlayer( this, getInt( txtBufAudio ), getInt( txtBufDecode ));
+        multiPlayer.playAsync( getUrl());
     }
 
 
     private void stop() {
-        if (aacPlayer != null) {
-            aacPlayer.stop();
-            aacPlayer = null;
+        if (multiPlayer != null) {
+            multiPlayer.stop();
+            multiPlayer = null;
         }
     }
 

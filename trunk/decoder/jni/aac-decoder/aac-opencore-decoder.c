@@ -211,11 +211,18 @@ static int aacd_opencore_decode( AACDInfo *info, unsigned char *buffer, unsigned
 }
 
 
+static int aacd_opencore_sync( AACDInfo *info, unsigned char *buffer, int buffer_size )
+{
+    return aacd_adts_sync( buffer, buffer_size );
+}
+
+
 AACDDecoder aacd_opencore_decoder = {
     aacd_opencore_name,
     aacd_opencore_init,
     aacd_opencore_start,
     aacd_opencore_decode,
-    aacd_opencore_destroy
+    aacd_opencore_destroy,
+    aacd_opencore_sync
 };
 

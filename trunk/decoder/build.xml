@@ -19,10 +19,10 @@
 		Please add it to your '.ant.properties' file.
 	</fail>
 
-	<fail unless="opencore-aacdec.dir">
+	<fail unless="opencore-top.dir">
 		Missing property.
-		The property 'opencore-aacdec.dir' is not set. It should contain the location
-		of opencore-aacdec library source.
+		The property 'opencore-top.dir' is not set. It should contain the location
+		of android-opencore library source.
 		Please add it to your '.ant.properties' file.
 	</fail>
 
