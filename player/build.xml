@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="AACMusicPlayer" default="debug">
+<project name="AACMP3Player" default="debug">
 
 	<!-- The .ant.properties file is created and updated MANUALLY.
 		 It contains the path to the NDK. It should *NOT* be checked in in Version

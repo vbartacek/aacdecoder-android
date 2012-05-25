@@ -168,8 +168,21 @@ typedef struct AACDDecoder {
      */
     void (*destroy)( AACDInfo* );
 
+    /**
+     * Searches for ADTS 0xfff header. Can be null - the default sync func is used.
+     * Returns the offset of ADTS frame.
+     * @return either positive = number of bytes consumed; negative means an error code.
+     */
+    int (*sync)( AACDInfo*, unsigned char *, int );
+
 } AACDDecoder;
 
+
+/**
+ * Searches for ADTS 0xfff header.
+ * Returns the offset of ADTS frame.
+ */
+int aacd_adts_sync(unsigned char *buffer, int len);
 
 
 #ifdef __cplusplus

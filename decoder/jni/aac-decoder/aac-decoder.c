@@ -52,6 +52,10 @@ static struct JavaArrayBufferReader javaABR;
 static struct JavaDecoderInfo javaDecoderInfo;
 
 extern AACDDecoder aacd_opencore_decoder;
+extern AACDDecoder aacd_opencoremp3_decoder;
+
+#define AACD_DECODERS_COUNT 2
+static struct AACDDecoder* aacd_decoders[AACD_DECODERS_COUNT] = { &aacd_opencore_decoder, &aacd_opencoremp3_decoder };
 
 
 /****************************************************************************************************
@@ -62,7 +66,7 @@ extern AACDDecoder aacd_opencore_decoder;
  * Searches for ADTS 0xfff header.
  * Returns the offset of ADTS frame.
  */
-static int aacd_probe(unsigned char *buffer, int len)
+int aacd_adts_sync(unsigned char *buffer, int len)
 {
     int pos = 0;
     len -= 3;
@@ -340,7 +344,7 @@ static void aacd_decode( AACDInfo *info, jshort *samples, jint outLen )
                 }
             }
 
-            int pos = aacd_probe( info->buffer+1, info->bytesleft-1 );
+            int pos = info->decoder->sync( info, info->buffer+1, info->bytesleft-1 );
 
             if (pos >= 0) {
                 info->buffer += pos+1;
@@ -396,7 +400,7 @@ JNIEXPORT jint JNICALL Java_com_spoledge_aacdecoder_Decoder_nativeStart
     unsigned char* buffer = aacd_read_buffer( info );
     unsigned long buffer_size = info->bytesleft;
 
-    int pos = aacd_probe( buffer, buffer_size );
+    int pos = info->decoder->sync( info, buffer, buffer_size );
 
     if (pos < 0)
     {
@@ -472,4 +476,35 @@ JNIEXPORT void JNICALL Java_com_spoledge_aacdecoder_Decoder_nativeStop
     info->env = env;
     aacd_stop( info );
 }
+
+
+/*
+ * Class:     com_spoledge_aacdecoder_Decoder
+ * Method:    nativeDecoderGetByName
+ * Signature: (Ljava/lang/String;)I
+ */
+JNIEXPORT jint JNICALL Java_com_spoledge_aacdecoder_Decoder_nativeDecoderGetByName
+  (JNIEnv *env, jclass clazzDecoder, jstring jname)
+{
+    int i;
+    AACDDecoder *ret = NULL;
+    jboolean isCopy;
+    const char *name = (*env)->GetStringUTFChars( env, jname, &isCopy );
+
+    for (i=0; i < AACD_DECODERS_COUNT; i++)
+    {
+        AACDDecoder *dec = aacd_decoders[i];
+
+        if (!strcmp( name, dec->name()))
+        {
+            ret = dec;
+            break;
+        }
+    }
+
+    (*env)->ReleaseStringUTFChars( env, jname, name );
+
+    return (jint) ret;
+}
+
 

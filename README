@@ -14,7 +14,7 @@ For this software the following license applies:
 
 ******************************************************************************
 ** AACDecoder - Freeware Advanced Audio (AAC) Decoder for Android
-** Copyright (C) 2011 Spolecne s.r.o., http://www.spoledge.com
+** Copyright (C) 2011, 2012 Spolecne s.r.o., http://www.spoledge.com
 **  
 ** This file is a part of AACDecoder.
 **
@@ -72,19 +72,26 @@ INSTALLING
 
 Requirements:
     - Android SDK - at least platform 3 (Android 1.5)
-    - Android NDK - r4
+    - Android NDK - r6
 
 
 Preparing OpenCORE sources:
 -------------------------
 
-    You have to download OpenCORE aacdec sources either by:
+    You have to download Android OpenCORE sources either by:
 
-        * downloading OpenCORE sources from our "Downloads" tab:
+        * downloading Android OpenCORE sources from our "Downloads" tab:
             http://code.google.com/p/aacplayer-android/downloads/list
 
-        * checking-out OpenCORE aacdec sources from the original project:
-            http://code.google.com/p/opencore-aacdec/
+        * checking-out Android OpenCORE sources from the Androids repository:
+            http://android.git.kernel.org
+
+            (unfortunately this was working in summer 2011,
+                but there is not an easy way how to download pure OpenCORE
+                module now (spring 2012)
+
+                - if anybody can provide me the full sources (OpenCORE only)
+                    I would appreciate it)
 
     If you download a zip file, then please unzip it.
 
@@ -95,7 +102,7 @@ Compiling:
     1) copy sample.ant.properties to .ant.properties and edit .ant.properties:
         - path to Android SDK
         - path to Android NDK
-        - path to OpenCORE aacdec source
+        - path to Android OpenCORE source
 
     2) run ant
 

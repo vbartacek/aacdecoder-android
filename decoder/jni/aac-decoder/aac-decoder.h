@@ -52,6 +52,14 @@ JNIEXPORT jint JNICALL Java_com_spoledge_aacdecoder_Decoder_nativeDecode
 JNIEXPORT void JNICALL Java_com_spoledge_aacdecoder_Decoder_nativeStop
   (JNIEnv *, jobject, jint);
 
+/*
+ * Class:     com_spoledge_aacdecoder_Decoder
+ * Method:    nativeDecoderGetByName
+ * Signature: (Ljava/lang/String;)I
+ */
+JNIEXPORT jint JNICALL Java_com_spoledge_aacdecoder_Decoder_nativeDecoderGetByName
+  (JNIEnv *, jclass, jstring);
+
 #ifdef __cplusplus
 }
 #endif

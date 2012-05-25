@@ -59,5 +59,20 @@ public interface PlayerCallback {
      */
     public void playerException( Throwable t );
 
+
+    /**
+     * This method is called when the player receives a metadata information.
+     * It can be either before starting the player (from HTTP header - all header pairs)
+     * or during playback (metadata frame info).
+     *
+     * The list of available keys is not part of this project -
+     * it is depending on the server implementation.
+     *
+     * @param key the metadata key - e.g. from HTTP header: "icy-genre", "icy-url", "content-type",..
+     *      or from the dynamic metadata frame: e.g. "StreamTitle" or "StreamUrl"
+     * @param value the metadata value
+     */
+    public void playerMetadata( String key, String value );
+
 }
 
