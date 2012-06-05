@@ -50,6 +50,10 @@ public interface PlayerCallback {
     /**
      * This method is called when the player is stopped.
      * Note: __after__ this method the method playerException might be also called.
+     * @param perf performance indicator - how much is decoder faster than audio player in %;
+     *      if less than 0, then decoding of audio is slower than needed by audio player;
+     *      example: perf = 53 means that audio decoder is 53% faster than audio player
+     *          (production of audio data is 1.53 faster than consuption of audio data)
      */
     public void playerStopped( int perf );
 
