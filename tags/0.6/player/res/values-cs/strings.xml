@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="app_name">AAC MP3 Přehrávač</string>
+	<string name="button_close">Zavřít</string>
+	<string name="button_play">Přehrát</string>
+	<string name="button_stop">Zastavit</string>
+	<string name="text_buffering">Načítám...</string>
+	<string name="text_buffers">Vyr.paměť (ms)</string>
+	<string name="text_buffers_audio">Audio</string>
+	<string name="text_buffers_decode">Dekodér</string>
+	<string name="text_exception">Chyba</string>
+	<string name="text_playing">Přehrávám...</string>
+	<string name="text_stopped">Zastaveno</string>
+</resources>

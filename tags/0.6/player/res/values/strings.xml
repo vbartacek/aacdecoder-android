@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="app_name">AAC MP3 Player</string>
+	<string name="app_version">0.6b</string>
+	<string name="button_close">Close</string>
+	<string name="button_play">PLAY</string>
+	<string name="button_stop">STOP</string>
+	<string name="text_exception">Error</string>
+	<string name="text_buffering">Buffering...</string>
+	<string name="text_buffers">Buffers (ms)</string>
+	<string name="text_buffers_audio">Audio</string>
+	<string name="text_buffers_decode">Decode</string>
+	<string name="text_revision">$Revision: 21 $</string>
+	<string name="text_playing">Playing...</string>
+	<string name="text_stopped">Stopped</string>
+</resources>

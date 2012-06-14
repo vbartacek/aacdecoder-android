@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- This is a dummy manifest only.
+		 It is needed by NDK -->
+
+<manifest
+	  xmlns:android="http://schemas.android.com/apk/res/android"
+	  package="com.spoledge.aacplayer"
+	  android:versionCode="1"
+	  android:versionName="@string/app_version"
+>
+
+	<uses-permission android:name="android.permission.INTERNET" />
+	<uses-sdk android:minSdkVersion="3"/>
+
+	<application
+		android:label="@string/app_name"
+		android:debuggable="true"
+	>
+
+		<activity
+			android:name=".AACPlayerActivity"
+			android:label="@string/app_name"
+			android:launchMode="singleTask"
+		>
+
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+
+		</activity>
+	</application>
+</manifest> 
