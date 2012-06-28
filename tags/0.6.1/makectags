@@ -1,0 +1,2 @@
+#/bin/bash
+ctags --links=no -R decoder/src

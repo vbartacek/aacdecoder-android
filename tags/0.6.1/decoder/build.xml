@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="aacdecoder-android-jni" default="native" basedir=".">
+
+	<!-- The .ant.properties file is created and updated MANUALLY.
+		 It contains the path to the NDK. It should *NOT* be checked in in Version
+		 Control Systems. -->
+	<property file="../.ant.properties" />
+	<property file="../default.properties" />
+
+	<fail unless="sdk.dir">
+		Missing property.
+		The property 'sdk.dir' is not set. It should point to Android SDK home dir.
+		Please add it to your '.ant.properties' file.
+	</fail>
+
+	<fail unless="ndk.home">
+		Missing property.
+		The property 'ndk.home' is not set. It should point to Android NDK home dir.
+		Please add it to your '.ant.properties' file.
+	</fail>
+
+	<fail unless="opencore-top.dir">
+		Missing property.
+		The property 'opencore-top.dir' is not set. It should contain the location
+		of android-opencore library source.
+		Please add it to your '.ant.properties' file.
+	</fail>
+
+	<fail unless="jni.loglevel">
+		Missing property.
+		The property 'jni.loglevel' is not set. It should contain the target loglevel.
+		Please add it to your '.ant.properties' file.
+	</fail>
+
+	<property file="../VERSION" />
+
+	<property name="src.java.dir" location="src"/>
+	<property name="build.dir" location="bin"/>
+	<property name="build.classes.dir" location="${build.dir}/classes"/>
+	<property name="dist.dir" location="libs"/>
+
+	<property name="android.target.dir" location="${sdk.dir}/platforms/${target}"/>
+
+
+	<path id="android.path">
+		<fileset dir="${android.target.dir}">
+			<include name="android.jar"/>
+		</fileset>
+	</path>
+
+	<path id="compile.path">
+	</path>
+
+
+	<target name="java" description="Builds Java part">
+		<mkdir dir="${build.classes.dir}"/>
+		<javac
+			target="1.5"
+			debug="true"
+			destdir="${build.classes.dir}"
+			bootclasspathref="android.path"
+			classpathref="compile.path"
+			deprecation="true"
+			includeantruntime="false"
+		>
+			<src path="${src.java.dir}"/>
+		</javac>
+
+		<mkdir dir="${dist.dir}"/>
+		<jar destfile="${dist.dir}/aacdecoder-android-${version}.jar">
+			<fileset dir="${build.classes.dir}">
+				<include name="**" />
+			</fileset>
+			<manifest>
+				<attribute name="Built-By" value="${user.name}" />
+				<attribute name="Build-Jdk" value="${java.version}"/>
+				<attribute name="Build-Platform" value="${os.name} ${os.arch} ${os.version}"/>
+			</manifest>
+		</jar>
+	</target>
+
+
+	<target name="native" depends="java" description="Builds native libs">
+		<exec executable="${ndk.home}/ndk-build" failonerror="true">
+			<arg line="${make.options}"/>
+		</exec>
+	</target>
+
+
+	<target name="clean" description="Clears output directories">
+		<delete dir="${dist.dir}"/>
+		<delete dir="${build.dir}"/>
+	</target>
+
+
+	<target name="mrproper" depends="clean" description="Clears all including the JNI objects.">
+		<exec executable="${ndk.home}/ndk-build">
+			<arg value="clean"/>
+		</exec>
+	</target>
+
+</project>

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<drawable name="main_background">#ff1f293e</drawable>
+	<color name="button_main_color">#ff324f85</color>
+</resources>
