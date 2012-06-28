@@ -83,15 +83,9 @@ Preparing OpenCORE sources:
         * downloading Android OpenCORE sources from our "Downloads" tab:
             http://code.google.com/p/aacplayer-android/downloads/list
 
-        * checking-out Android OpenCORE sources from the Androids repository:
-            http://android.git.kernel.org
-
-            (unfortunately this was working in summer 2011,
-                but there is not an easy way how to download pure OpenCORE
-                module now (spring 2012)
-
-                - if anybody can provide me the full sources (OpenCORE only)
-                    I would appreciate it)
+    Please note that each version of thei decoder library needs specific
+    OpenCORE version. In the downloads list select that one which 
+    is just below the relevant source/libs archives.
 
     If you download a zip file, then please unzip it.
 
@@ -107,7 +101,7 @@ Compiling:
     2) run ant
 
     3) install the APK on the emulator or a device:
-        adb install player/bin/AACMusicPlayer-debug.apk
+        adb install player/bin/AACMP3Player-debug.apk
 
 
 USING THE AAC DECODER LIBRARY FOR OTHER PROJECTS
