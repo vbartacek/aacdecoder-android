@@ -25,6 +25,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.IOException;
 
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 
@@ -277,12 +278,34 @@ public class AACPlayer {
 
             prepareConnection( cn );
             cn.connect();
-            processHeaders( cn );
 
-            // TODO: try to get the expectedKBitSecRate from headers
-            play( getInputStream( cn ), expectedKBitSecRate);
+            InputStream is = null;
+
+            try {
+                processHeaders( cn );
+                is = getInputStream( cn );
+
+                // TODO: try to get the expectedKBitSecRate from headers
+                play( is, expectedKBitSecRate);
+            }
+            finally {
+                try { is.close(); } catch (Throwable t) {}
+
+                if (cn instanceof HttpURLConnection) {
+                    try { ((HttpURLConnection)cn).disconnect(); } catch (Throwable t) {}
+                }
+            }
         }
-        else play( new FileInputStream( url ), expectedKBitSecRate );
+        else {
+            InputStream is = new FileInputStream( url );
+
+            try {
+                play( is, expectedKBitSecRate );
+            }
+            finally {
+                try { is.close(); } catch (Throwable t) {}
+            }
+        }
     }
 
 
