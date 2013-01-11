@@ -333,7 +333,7 @@ public class PCMFeed implements Runnable, AudioTrack.OnPlaybackPositionUpdateLis
 
                 writtenNow += written;
                 ln -= written;
-            } while (ln > 0);
+            } while (ln > 0 && !stopped);
 
             releaseSamples();
         }
