@@ -89,10 +89,11 @@ static long aacd_opencoremp3_start( AACDInfo *info, unsigned char *buffer, unsig
 
     int32_t status;
     int frameDecoded = 0;
+    int attempts = 16;
     pExt->outputFrameSize           = 0;
 
     /* pre-init search adts sync */
-    while (pExt->outputFrameSize == 0) {
+    while (pExt->outputFrameSize == 0 && attempts--) {
         pExt->pInputBuffer              = buffer;
         pExt->inputBufferMaxLength      = buffer_size;
         pExt->inputBufferCurrentLength  = buffer_size;
@@ -100,9 +101,30 @@ static long aacd_opencoremp3_start( AACDInfo *info, unsigned char *buffer, unsig
         pExt->outputFrameSize           = 4096;
 
         status = pvmp3_framedecoder(pExt, oc->pMem);
-        AACD_DEBUG( "start() Status[0]: %d - cosumed %d bytes", status, pExt->inputBufferUsedLength );
+        AACD_DEBUG( "start() Status[0]: %d - consumed %d bytes", status, pExt->inputBufferUsedLength );
 
         if (status != NO_DECODING_ERROR) {
+            AACD_ERROR( "start() frame decode error=%d", status );
+
+            if (!pExt->inputBufferUsedLength) {
+                AACD_ERROR( "start() first frame cannot be decoded - trying to sync again" );
+
+                buffer++;
+                buffer_size--;
+                pExt->pInputBuffer              = buffer;
+                pExt->inputBufferMaxLength      = buffer_size;
+                pExt->inputBufferCurrentLength  = buffer_size;
+
+                ERROR_CODE err = pvmp3_frame_synch( oc->pExt, oc->pMem );
+
+                if (err != NO_DECODING_ERROR) {
+                    AACD_ERROR( "start() cannot sync the stream status=%d", err );
+                    break;
+                }
+                else {
+                    AACD_INFO( "start() sync was successful - used bytes=%d", pExt->inputBufferUsedLength );
+                }
+            }
             buffer -= pExt->inputBufferUsedLength;
             buffer_size -= pExt->inputBufferUsedLength;
         }
@@ -165,7 +187,7 @@ static int aacd_opencoremp3_sync( AACDInfo *info, unsigned char *buffer, int buf
     {
         ERROR_CODE err = pvmp3_frame_synch( oc->pExt, oc->pMem );
 
-        return err != NO_DECODING_ERROR ? -1 : 0;
+        return err != NO_DECODING_ERROR ? -1 : oc->pExt->inputBufferUsedLength;
     }
 
     return 0;
