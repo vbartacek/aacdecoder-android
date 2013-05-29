@@ -77,6 +77,7 @@ public class AACPlayer {
     protected int audioBufferCapacityMs;
     protected int decodeBufferCapacityMs;
     protected PlayerCallback playerCallback;
+    protected String metadataCharEnc;
 
     protected Decoder decoder;
 
@@ -223,6 +224,14 @@ public class AACPlayer {
      */
     public void setMetadataEnabled( boolean metadataEnabled ) {
         this.metadataEnabled = metadataEnabled;
+    }
+
+    /**
+     * Sets the encoding for the metadata strings.
+     * If not set, then UTF-8 is used.
+     */
+    public void setMetadataCharEnc( String metadataCharEnc ) {
+        this.metadataCharEnc = metadataCharEnc;
     }
 
 
@@ -504,7 +513,7 @@ public class AACPlayer {
             if (period > 0) {
                 Log.i( LOG, "The dynamic metainfo is sent every " + period + " bytes" );
 
-                ret = new IcyInputStream( ret, period, playerCallback );
+                ret = new IcyInputStream( ret, period, playerCallback, metadataCharEnc );
             }
         }
         else Log.i( LOG, "This stream does not provide dynamic metainfo" );
