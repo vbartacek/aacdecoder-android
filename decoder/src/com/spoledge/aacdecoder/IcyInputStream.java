@@ -63,6 +63,12 @@ public class IcyInputStream extends FilterInputStream {
     protected PlayerCallback playerCallback;
 
 
+    /**
+     * The character encoding of the metadata.
+     */
+    protected String characterEncoding;
+
+
     ////////////////////////////////////////////////////////////////////////////
     // Constructors
     ////////////////////////////////////////////////////////////////////////////
@@ -84,9 +90,22 @@ public class IcyInputStream extends FilterInputStream {
      * @param playerCallback the callback - may be null
      */
     public IcyInputStream( InputStream in, int period, PlayerCallback playerCallback ) {
+        this( in, period, playerCallback, null );
+    }
+
+
+    /**
+     * Creates a new input stream.
+     * @param in the underlying input stream
+     * @param period the period of metadata frame is repeating (in bytes)
+     * @param playerCallback the callback - may be null
+     * @param characterEncoding the encoding used for metadata strings - may be null = default is UTF-8
+     */
+    public IcyInputStream( InputStream in, int period, PlayerCallback playerCallback, String characterEncoding ) {
         super( in );
         this.period = period;
         this.playerCallback = playerCallback;
+        this.characterEncoding = characterEncoding != null ? characterEncoding : "UTF-8";
 
         remaining = period;
         mbuffer = new byte[128];
@@ -115,6 +134,24 @@ public class IcyInputStream extends FilterInputStream {
         else remaining -= ret;
 
         return ret;
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Public
+    ////////////////////////////////////////////////////////////////////////////
+
+    public String getCharacterEncoding() {
+        return characterEncoding;
+    }
+
+
+    /**
+     * Sets the character encoding used for the metadata strings.
+     * By default it is set to UTF-8.
+     */
+    public void setCharacterEncoding( String characterEncoding ) {
+        this.characterEncoding = characterEncoding;
     }
 
 
@@ -156,7 +193,7 @@ public class IcyInputStream extends FilterInputStream {
         String s;
 
         try {
-            s = new String( mbuffer, 0, size, "UTF-8" );
+            s = new String( mbuffer, 0, size, characterEncoding );
         }
         catch (Exception e) {
             Log.e( LOG, "Cannot convert bytes to String" );
