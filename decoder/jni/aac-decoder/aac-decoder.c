@@ -404,11 +404,13 @@ JNIEXPORT jint JNICALL Java_com_spoledge_aacdecoder_Decoder_nativeStart
 
     if (pos < 0)
     {
-        AACD_ERROR( "start() failed - ADTS sync word not found" );
+        AACD_ERROR( "start() failed - SYNC word not found" );
         aacd_stop( info );
 
         return 0;
     }
+
+    AACD_DEBUG( "start() SYNC word found at offset=%d", pos );
 
     buffer += pos;
     buffer_size -= pos;
