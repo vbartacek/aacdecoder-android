@@ -274,7 +274,12 @@ public class PCMFeed implements Runnable, AudioTrack.OnPlaybackPositionUpdateLis
             + ", bufferSizeInBytes=" + bufferSizeInBytes
             + " (" + bufferSizeInMs + " ms)");
 
-        AudioTrack atrack = new AudioTrack(
+        isPlaying = false;
+
+        AudioTrack atrack = null;
+
+        try {
+            atrack = new AudioTrack(
                                 AudioManager.STREAM_MUSIC,
                                 sampleRate,
                                 channels == 1 ?
@@ -284,10 +289,14 @@ public class PCMFeed implements Runnable, AudioTrack.OnPlaybackPositionUpdateLis
                                 bufferSizeInBytes,
                                 AudioTrack.MODE_STREAM );
 
-        atrack.setPlaybackPositionUpdateListener( this );
-        atrack.setPositionNotificationPeriod( msToSamples( 200, sampleRate, channels ));
-
-        isPlaying = false;
+            atrack.setPlaybackPositionUpdateListener( this );
+            atrack.setPositionNotificationPeriod( msToSamples( 200, sampleRate, channels ));
+        }
+        catch (Throwable t) {
+            Log.e( LOG, "Cannot create AudioTrack: " + t );
+            stop();
+            if (playerCallback != null) playerCallback.playerException( t );
+        }
 
         while (!stopped) {
             // fetch the samples into our "local" variable lsamples:
