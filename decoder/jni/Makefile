@@ -11,4 +11,4 @@ dump:
 	make -f $(ndk.home)/build/core/build-local.mk dump
 
 TAGS:
-	ctags --links=no -R aac-decoder $(opencore-aacdec.dir)
+	ctags --links=no -R aac-decoder $(opencore-top.dir)
