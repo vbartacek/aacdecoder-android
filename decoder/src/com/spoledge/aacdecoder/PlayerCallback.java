@@ -19,6 +19,7 @@
 */
 package com.spoledge.aacdecoder;
 
+import android.media.AudioTrack;
 import android.util.Log;
 
 import java.io.IOException;
@@ -77,6 +78,15 @@ public interface PlayerCallback {
      * @param value the metadata value
      */
     public void playerMetadata( String key, String value );
+
+
+    /**
+     * This method is called when the player creates a new AudioTrack object
+     * - before any PCM data are fed into it.
+     *
+     * @param value the metadata value
+     */
+    public void playerAudioTrackCreated( AudioTrack audioTrack );
 
 }
 

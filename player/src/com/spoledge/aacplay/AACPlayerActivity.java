@@ -25,6 +25,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 
+import android.media.AudioTrack;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -168,6 +169,10 @@ public class AACPlayerActivity extends Activity implements View.OnClickListener,
                 ftv.setText( value );
             }
         });
+    }
+
+
+    public void playerAudioTrackCreated( AudioTrack atrack ) {
     }
 
 
