@@ -350,6 +350,11 @@ static void aacd_decode( AACDInfo *info, jshort *samples, jint outLen )
                 info->buffer += pos+1;
                 info->bytesleft -= pos+1;
             }
+            else {
+                int move = info->bytesleft < 2048 ? (info->bytesleft >> 1) : 1024;
+                info->buffer += move;
+                info->bytesleft -= move;
+            }
         }
         while (--attempts > 0);
 
