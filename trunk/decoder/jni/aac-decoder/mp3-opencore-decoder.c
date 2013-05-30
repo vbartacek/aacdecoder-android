@@ -90,10 +90,11 @@ static long aacd_opencoremp3_start( AACDInfo *info, unsigned char *buffer, unsig
     int32_t status;
     int frameDecoded = 0;
     int attempts = 16;
+    int totalConsumed = 0;
     pExt->outputFrameSize           = 0;
 
     /* pre-init search adts sync */
-    while (pExt->outputFrameSize == 0 && attempts--) {
+    while (!frameDecoded && attempts--) {
         pExt->pInputBuffer              = buffer;
         pExt->inputBufferMaxLength      = buffer_size;
         pExt->inputBufferCurrentLength  = buffer_size;
@@ -103,26 +104,35 @@ static long aacd_opencoremp3_start( AACDInfo *info, unsigned char *buffer, unsig
         status = pvmp3_framedecoder(pExt, oc->pMem);
         AACD_DEBUG( "start() Status[0]: %d - consumed %d bytes", status, pExt->inputBufferUsedLength );
 
+        totalConsumed += pExt->inputBufferUsedLength;
+
         if (status != NO_DECODING_ERROR) {
             AACD_ERROR( "start() frame decode error=%d", status );
 
             if (!pExt->inputBufferUsedLength) {
                 AACD_ERROR( "start() first frame cannot be decoded - trying to sync again" );
 
-                buffer++;
-                buffer_size--;
+                int move = buffer_size < 2048 ? (buffer_size >> 1) : 1024;
+                buffer += move;
+                buffer_size -= move;
+                totalConsumed += move;
+
                 pExt->pInputBuffer              = buffer;
                 pExt->inputBufferMaxLength      = buffer_size;
                 pExt->inputBufferCurrentLength  = buffer_size;
 
                 ERROR_CODE err = pvmp3_frame_synch( oc->pExt, oc->pMem );
 
-                if (err != NO_DECODING_ERROR) {
+                if (err == SYNCH_LOST_ERROR) {
+                    AACD_ERROR( "start() cannot re-sync the stream after next %d bytes, status=%d", move, err );
+                }
+                else if (err != NO_DECODING_ERROR) {
                     AACD_ERROR( "start() cannot sync the stream status=%d", err );
                     break;
                 }
                 else {
-                    AACD_INFO( "start() sync was successful - used bytes=%d", pExt->inputBufferUsedLength );
+                    totalConsumed += pExt->inputBufferUsedLength;
+                    AACD_INFO( "start() sync was successful - used bytes=%d", totalConsumed );
                 }
             }
             buffer -= pExt->inputBufferUsedLength;
@@ -142,12 +152,12 @@ static long aacd_opencoremp3_start( AACDInfo *info, unsigned char *buffer, unsig
         return -1;
     }
 
-    AACD_DEBUG( "start() bytesconsumed=%d", pExt->inputBufferUsedLength );
+    AACD_DEBUG( "start() bytesconsumed=%d", totalConsumed );
 
     info->samplerate = pExt->samplingRate;
     info->channels = pExt->num_channels;
 
-    return pExt->inputBufferUsedLength;
+    return totalConsumed;
 }
 
 
