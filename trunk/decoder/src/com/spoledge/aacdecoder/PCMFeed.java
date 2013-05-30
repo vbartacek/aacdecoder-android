@@ -291,6 +291,8 @@ public class PCMFeed implements Runnable, AudioTrack.OnPlaybackPositionUpdateLis
 
             atrack.setPlaybackPositionUpdateListener( this );
             atrack.setPositionNotificationPeriod( msToSamples( 200, sampleRate, channels ));
+
+            if (playerCallback != null) playerCallback.playerAudioTrackCreated( atrack );
         }
         catch (Throwable t) {
             Log.e( LOG, "Cannot create AudioTrack: " + t );
