@@ -53,8 +53,15 @@
 
 
 	<target name="java" description="Builds Java part">
+		<mkdir dir="${dist.dir}"/>
+		<antcall target="java-impl"/>
+	</target>
+
+	<!-- Include the Jar only if not called by Maven -->
+	<target name="java-impl" unless="project.artifactId">
 		<mkdir dir="${build.classes.dir}"/>
 		<javac
+			source="1.5"
 			target="1.5"
 			debug="true"
 			destdir="${build.classes.dir}"
@@ -66,7 +73,6 @@
 			<src path="${src.java.dir}"/>
 		</javac>
 
-		<mkdir dir="${dist.dir}"/>
 		<jar destfile="${dist.dir}/aacdecoder-android-${version}.jar">
 			<fileset dir="${build.classes.dir}">
 				<include name="**" />
@@ -78,7 +84,6 @@
 			</manifest>
 		</jar>
 	</target>
-
 
 	<target name="native" depends="java" description="Builds native libs">
 		<exec executable="${ndk.home}/ndk-build" failonerror="true">
