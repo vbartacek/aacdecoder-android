@@ -72,7 +72,7 @@ INSTALLING
 
 Requirements:
     - Android SDK - at least platform 3 (Android 1.5)
-    - Android NDK - r6
+    - Android NDK - tested with r6, r9c
 
 
 Preparing OpenCORE sources:
@@ -121,4 +121,39 @@ Using:
     Please look at the example activity using the AAC decoder:
 
         player/src/com/spoledge/aacplay/AACPlayerActivity.java
+
+
+USING MAVEN 
+===========
+
+Starting with the version 0.7 the project can be built using Maven.
+
+NOTE: You have to configure the .ant.properties to point to the OpenCORE
+    sources (see above)
+
+You must install Android 1.5_r4 into your Maven repository.
+Please see https://code.google.com/p/maven-android-plugin/ how to use
+Maven for Android projects.
+
+When you have you maven for Android ready, then just do:
+
+    $ mvn install
+
+Then start an emulator or attach a device, go to the "decoder" dir
+and run:
+
+    $ mvn android:deploy
+
+Using the apklib by other projects is as easy as the demo "player"
+is using it (see the player/pom.xml):
+
+    <dependencies>
+		<dependency>
+			<groupId>com.spoledge.aacdecoder</groupId>
+			<artifactId>aacdecoder-lib</artifactId>
+			<version>0.7</version>
+			<type>apklib</type>
+		</dependency>
+    </dependencies>
+
 
