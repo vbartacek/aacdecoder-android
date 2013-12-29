@@ -9,7 +9,7 @@
 	<parent>
 		<groupId>com.spoledge.aacdecoder</groupId>
 		<artifactId>aacdecoder</artifactId>
-		<version>0.7-SNAPSHOT</version>
+		<version>0.7</version>
 	</parent>
 
 	<artifactId>aacdecoder-demo</artifactId>
