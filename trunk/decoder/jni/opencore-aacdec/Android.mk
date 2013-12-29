@@ -167,11 +167,19 @@ PV_INCLUDES	:= $(PV_INCLUDES) \
 
 LOCAL_MODULE := libpv_aac_dec
 
+# 2013-12-29: To compile for all platforms we must force
+# evaluating of the PV Config.mk for each of them:
+EXTERNAL_OPENCORE_CONFIG_ONCE :=
+PV_CFLAGS :=
+
 # Unfortunately PS causes crash for certain streams:
 # fixed 2012-06-28
 #LOCAL_CFLAGS := -DAAC_PLUS -DHQ_SBR $(PV_CFLAGS)
 LOCAL_CFLAGS := -DAAC_PLUS -DHQ_SBR -DPARAMETRICSTEREO $(PV_CFLAGS)
-LOCAL_ARM_MODE := arm
+
+ifeq ($(TARGET_ARCH),arm)
+	LOCAL_ARM_MODE := arm
+endif
 
 LOCAL_STATIC_LIBRARIES := 
 

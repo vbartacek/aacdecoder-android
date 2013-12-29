@@ -39,12 +39,21 @@ LOCAL_SRC_FILES := \
 	src/pvmp3_reorder.cpp \
 	src/pvmp3_seek_synch.cpp \
 	src/pvmp3_stereo_proc.cpp \
-	src/pvmp3_tables.cpp \
+	src/pvmp3_tables.cpp
+
+ifeq ($(TARGET_ARCH),arm)
+LOCAL_SRC_FILES += \
 	src/asm/pvmp3_dct_16_gcc.s \
 	src/asm/pvmp3_dct_9_gcc.s \
 	src/asm/pvmp3_mdct_18_gcc.s \
 	src/asm/pvmp3_polyphase_filter_window_gcc.s
-
+else
+LOCAL_SRC_FILES += \
+	src/pvmp3_dct_16.cpp \
+	src/pvmp3_dct_9.cpp \
+	src/pvmp3_mdct_18.cpp \
+	src/pvmp3_polyphase_filter_window.cpp
+endif
 
  	
 #src/../util/getactualaacconfig/src/getactualaacconfig.cpp
@@ -60,8 +69,12 @@ PV_INCLUDES	:= $(PV_INCLUDES) \
 
 LOCAL_MODULE := libpv_mp3_dec
 
-LOCAL_CFLAGS := -DPV_ARM_GCC_V4 $(PV_CFLAGS)
-LOCAL_ARM_MODE := arm
+ifeq ($(TARGET_ARCH),arm)
+  LOCAL_CFLAGS := -DPV_ARM_GCC_V4 $(PV_CFLAGS)
+  LOCAL_ARM_MODE := arm
+else
+  LOCAL_CFLAGS :=  $(PV_CFLAGS)
+endif
 
 LOCAL_STATIC_LIBRARIES := 
 
