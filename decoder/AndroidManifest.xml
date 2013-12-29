@@ -6,6 +6,6 @@
 	  xmlns:android="http://schemas.android.com/apk/res/android"
 	  package="com.spoledge.aacdecoder"
 	  android:versionCode="10"
-	  android:versionName="0.7-SNAPSHOT"
+	  android:versionName="0.7"
 >
 </manifest> 
