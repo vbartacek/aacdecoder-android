@@ -283,11 +283,7 @@ public class AACPlayer {
      */
     public void play( String url, int expectedKBitSecRate ) throws Exception {
         if (url.indexOf( ':' ) > 0) {
-            URLConnection cn = new URL( url ).openConnection();
-
-            prepareConnection( cn );
-            cn.connect();
-
+            URLConnection cn = openConnection( url );
             InputStream is = null;
 
             try {
@@ -479,6 +475,55 @@ public class AACPlayer {
     }
 
 
+
+    /**
+     * Opens connection.
+     * Tries to recognize if the stream is a standard HTTP or SHOUTCAST.
+     * Since Android 4.4 Kitkat the HttpURLConnection implementation is strict
+     * and does not allow SHOUTCAST response "ICY 200 OK".
+     * If we detect this, we try to use alternate protocol "icy" and 
+     * our auxiliar implementation - IcyURLConnection.
+     * NOTE: URL.setURLStreamHandlerFactory() must be called - this library does not call it
+     * itself.
+     */
+    protected URLConnection openConnection( String url ) throws IOException {
+        URLConnection conn = null;
+        boolean close = true;
+
+        while (true) {
+            conn = new URL( url ).openConnection();
+
+            prepareConnection( conn );
+            conn.connect();
+
+            try {
+                if (conn.getHeaderFields() == null) {
+                    Log.w( LOG, "No header fields in response for url " + url );
+
+                    if (url.startsWith( "http:" )) {
+                        url = "icy" + url.substring( 4 );
+                    }
+                    else throw new IOException( "Invalid protocol response - no headers detected" );
+                }
+                else {
+                    close = false;
+                    break;
+                }
+            }
+            finally {
+                if (close) {
+                    if (conn instanceof HttpURLConnection) {
+                        try { ((HttpURLConnection)conn).disconnect(); } catch (Throwable t) {}
+                    }
+                    conn = null;
+                }
+            }
+        }
+
+        return conn;
+    }
+
+
     /**
      * Prepares the connection.
      * This method is called before a connection is opened.
@@ -539,6 +584,11 @@ public class AACPlayer {
 
 
     protected void dumpHeaders( URLConnection cn ) {
+        if (cn.getHeaderFields() == null) {
+            Log.d( LOG, "No headers - not an HTTP response ?" );
+            return;
+        }
+
         for (java.util.Map.Entry<String, java.util.List<String>> me : cn.getHeaderFields().entrySet()) {
             for (String s : me.getValue()) {
                 Log.d( LOG, "header: key=" + me.getKey() + ", val=" + s);
