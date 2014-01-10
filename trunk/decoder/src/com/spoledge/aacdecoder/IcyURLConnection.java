@@ -1,3 +1,22 @@
+/*
+** AACDecoder - Freeware Advanced Audio (AAC) Decoder for Android
+** Copyright (C) 2014 Spolecne s.r.o., http://www.spoledge.com
+**  
+** This file is a part of AACDecoder.
+**
+** AACDecoder is free software; you can redistribute it and/or modify
+** it under the terms of the GNU Lesser General Public License as published
+** by the Free Software Foundation; either version 3 of the License,
+** or (at your option) any later version.
+** 
+** This program is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+** GNU Lesser General Public License for more details.
+** 
+** You should have received a copy of the GNU Lesser General Public License
+** along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
 package com.spoledge.aacdecoder;
 
 import java.io.IOException;
@@ -14,12 +33,37 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import android.util.Log;
 
-
+/**
+ * This is a URLConnection allowing to accept http-like ICY (shoutcast) responses.
+ * Starting from Android 4.4 Kitkat the standard HttpURLConnection is not able
+ * to process ICY protocol, so this class is a workaround for fixing this situation.
+ *
+ * The instance of this class must be created either directly, or by using
+ * the IcyURLStreamHandler and setting a new global URLStreamHandlerFactory into the JVM:
+ * <pre>
+ *  try {
+ *      java.net.URL.setURLStreamHandlerFactory( new java.net.URLStreamHandlerFactory(){
+ *          public java.net.URLStreamHandler createURLStreamHandler( String protocol ) {
+ *              if ("icy".equals( protocol )) return new com.spoledge.aacdecoder.IcyURLStreamHandler();
+ *              return null;
+ *          }
+ *      });
+ *  }
+ *  catch (Throwable t) {
+ *      Log.w( LOG, "Cannot set the ICY URLStreamHandler - maybe already set ? - " + t );
+ *  }
+ * </pre>
+ *
+ * When the URLStreamHandlerFactory is installed, you can create the URLConnection indirectly
+ * using the URL class:
+ *
+ * <pre>
+ *  java.net.URL url = new java.net.URL( "icy://159.253.145.178:8100" );
+ *  java.net.URLConnection = url.openConnection(); // should be instance of IcyURLConnection
+ * </pre>
+ */
 public class IcyURLConnection extends HttpURLConnection {
-
-    private static final String LOG = "IcyURLConnection";
 
     protected Socket socket;
     protected OutputStream outputStream;
@@ -33,6 +77,9 @@ public class IcyURLConnection extends HttpURLConnection {
     // Constructors
     ////////////////////////////////////////////////////////////////////////////
 
+    /**
+     * Creates new instance for the given URL.
+     */
     public IcyURLConnection( URL url ) {
         super( url );
     }
@@ -42,10 +89,17 @@ public class IcyURLConnection extends HttpURLConnection {
     // URLConnection
     ////////////////////////////////////////////////////////////////////////////
 
+    /**
+     * Opens a communications link to the resource referenced by this URL,
+     * if such a connection has not already been established.
+     */
+    @Override
     public synchronized void connect() throws IOException {
-        if (connected) throw new IOException( "Already connected" );
+        // according to specification:
+        if (connected) return;
 
-        socket = new Socket();
+        socket = createSocket();
+
         socket.connect(
             new InetSocketAddress( url.getHost(), url.getPort() != -1 ? url.getPort() : url.getDefaultPort()),
             getConnectTimeout());
@@ -177,6 +231,18 @@ public class IcyURLConnection extends HttpURLConnection {
     // Protected
     ////////////////////////////////////////////////////////////////////////////
 
+    /**
+     * Creates a new unconnected Socket instance.
+     * Subclasses may use this method to override the default socket implementation.
+     */
+    protected Socket createSocket() {
+        return new Socket();
+    }
+
+
+    /**
+     * Reads one response header line and adds it to the headers map.
+     */
     protected void parseHeaderLine( String line ) throws IOException {
         int len = 2;
         int n = line.indexOf( ": " );
@@ -203,6 +269,9 @@ public class IcyURLConnection extends HttpURLConnection {
     }
 
 
+    /**
+     * Reads the first response line.
+     */
     protected String readResponseLine() throws IOException {
         String line = readLine();
 
@@ -218,6 +287,10 @@ public class IcyURLConnection extends HttpURLConnection {
     }
 
 
+    /**
+     * Reads one response line.
+     * @return the line without any new-line character.
+     */
     protected String readLine() throws IOException {
         StringBuilder sb = new StringBuilder();
 
@@ -228,14 +301,14 @@ public class IcyURLConnection extends HttpURLConnection {
             sb.append( (char)c );
         }
 
-        Log.d( LOG, "IN> " + sb );
-
         return sb.toString();
     }
 
 
+    /**
+     * Writes one request line.
+     */
     protected void writeLine( String line ) throws IOException {
-        Log.d( LOG, "OUT> " + line );
         line += '\r';
         line += '\n';
         outputStream.write( line.getBytes( "UTF-8" ));
