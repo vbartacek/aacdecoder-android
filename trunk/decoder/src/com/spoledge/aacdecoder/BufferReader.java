@@ -170,9 +170,9 @@ public class BufferReader implements Runnable {
                 int indexNew = (indexMine + 1) % buffers.length;
 
                 while (!stopped && indexNew == indexBlocked) {
-                    Log.d( LOG, "run() waiting...." );
+                    //Log.d( LOG, "run() waiting...." );
                     try { wait(); } catch (InterruptedException e) {}
-                    Log.d( LOG, "run() awaken" );
+                    //Log.d( LOG, "run() awaken" );
                 }
 
                 indexMine = indexNew;

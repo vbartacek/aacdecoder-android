@@ -65,13 +65,25 @@ public class PCMFeed implements Runnable, AudioTrack.OnPlaybackPositionUpdateLis
      */
     protected PlayerCallback playerCallback;
 
+    /**
+     * The AudioTrack instance.
+     */
+    protected AudioTrack audioTrack;
 
     /**
      * True iff the AudioTrack is playing.
      */
     protected boolean isPlaying;
 
+    /**
+     * Flag for stopping immediatelly.
+     */
     protected boolean stopped;
+
+    /**
+     * Stopped by End-Of-File.
+     */
+    protected boolean stoppedByEOF;
 
 
     /**
@@ -177,12 +189,31 @@ public class PCMFeed implements Runnable, AudioTrack.OnPlaybackPositionUpdateLis
 
 
     /**
-     * Stops the PCM feeder.
+     * Stops the PCM feeder immediatelly.
      * This method just asynchronously notifies the execution thread.
      * This can be called in any state.
      */
     public synchronized void stop() {
-        stopped = true;
+        stop( false );
+    }
+
+
+    /**
+     * Stops the PCM feeder.
+     * This method just asynchronously notifies the execution thread.
+     * This can be called in any state.
+     * @param eof if true then stops after no data are available (eof);
+     *      otherwise stops immediatelly
+     */
+    public synchronized void stop( boolean eof ) {
+        if (eof) {
+            stoppedByEOF = true;
+        }
+        else {
+            stopped = true;
+            if (isPlaying) audioTrack.pause();
+        }
+
         notify();
     }
 
@@ -252,6 +283,7 @@ public class PCMFeed implements Runnable, AudioTrack.OnPlaybackPositionUpdateLis
             }
             catch (IllegalStateException e) {
                 Log.e( LOG, "onPeriodicNotification(): illegal state=" + track.getPlayState());
+
                 return;
             }
 
@@ -293,6 +325,8 @@ public class PCMFeed implements Runnable, AudioTrack.OnPlaybackPositionUpdateLis
             atrack.setPositionNotificationPeriod( msToSamples( 200, sampleRate, channels ));
 
             if (playerCallback != null) playerCallback.playerAudioTrackCreated( atrack );
+
+            this.audioTrack = atrack;
         }
         catch (Throwable t) {
             Log.e( LOG, "Cannot create AudioTrack: " + t );
@@ -304,7 +338,7 @@ public class PCMFeed implements Runnable, AudioTrack.OnPlaybackPositionUpdateLis
             // fetch the samples into our "local" variable lsamples:
             int ln = acquireSamples();
 
-            if (stopped) {
+            if (stopped || ln == 0) {
                 releaseSamples();
                 break;
             }
@@ -331,7 +365,7 @@ public class PCMFeed implements Runnable, AudioTrack.OnPlaybackPositionUpdateLis
 
                 // Log.d( LOG, "PCM fed by " + ln + " and written " + written + " samples - buffered " + buffered);
 
-                if (!isPlaying) {
+                if (!stopped && !isPlaying) {
                     if (buffered*2 >= bufferSizeInBytes) {
                         Log.d( LOG, "start of AudioTrack - buffered " + buffered + " samples");
                         atrack.play();
@@ -349,13 +383,18 @@ public class PCMFeed implements Runnable, AudioTrack.OnPlaybackPositionUpdateLis
             releaseSamples();
         }
 
-        if (isPlaying) atrack.stop();
+        // Play the rest of the file:
+        if (!stopped && stoppedByEOF) waitForLastTone();
+
+        // Stop playing:
+        if (isPlaying) atrack.pause();
         atrack.flush();
         atrack.release();
 
+        stopped = true;
+
         Log.d( LOG, "run() stopped." );
     }
-
 
 
     ////////////////////////////////////////////////////////////////////////////
@@ -367,7 +406,7 @@ public class PCMFeed implements Runnable, AudioTrack.OnPlaybackPositionUpdateLis
      * @return the actual size (in shorts) of the lsamples
      */
     protected synchronized int acquireSamples() {
-        while (samplesCount == 0 && !stopped) {
+        while (samplesCount == 0 && !(stopped || stoppedByEOF)) {
             try { wait(); } catch (InterruptedException e) {}
         }
 
@@ -391,6 +430,54 @@ public class PCMFeed implements Runnable, AudioTrack.OnPlaybackPositionUpdateLis
      */
     protected void releaseSamples() {
         // nothing to be done
+    }
+
+
+    /**
+     * Waits for the last tone.
+     */
+    protected void waitForLastTone() {
+        // very small files are not even started
+        // we try to start them now, but Android is waiting
+        // in STREAM mode for more data - that is why very small files cannot
+        // be played:
+        if (!isPlaying) {
+            Log.d( LOG, "start of AudioTrack" );
+            audioTrack.play();
+            isPlaying = true;
+        }
+
+        Log.i( LOG, "Waiting for the end of the music" );
+
+        int lastBuffered = writtenTotal;
+        int lastDiff = writtenTotal;
+        int count = 5;
+
+        do {
+            // sleep a while
+            try { Thread.sleep( 100 ); } catch (InterruptedException e) {}
+
+            // obtain the current buffer
+            int buffered = 0;
+
+            try {
+                buffered = writtenTotal - audioTrack.getPlaybackHeadPosition()*channels;
+            }
+            catch (IllegalStateException e) {
+                Log.e( LOG, "waitForLastTone(): illegal state=" + audioTrack.getPlayState());
+
+                break;
+            }
+
+            lastDiff = lastBuffered - buffered;
+            lastBuffered = buffered;
+
+            if (lastDiff == 0) count--;
+            else count = 5;
+
+            //Log.d( LOG, "WAIT-EOF: " + count + ", " + lastDiff + ", " + lastBuffered );
+        }
+        while ( count > 0 && (lastBuffered > 0 || lastDiff > 0));
     }
 
 }
