@@ -326,6 +326,7 @@ public class AACPlayer {
             }
         }
         else {
+            processFileType( url );
             InputStream is = new FileInputStream( url );
 
             try {
@@ -448,9 +449,10 @@ public class AACPlayer {
             } while (!stopped);
         }
         finally {
+            boolean stopImmediatelly = stopped;
             stopped = true;
 
-            if (pcmfeed != null) pcmfeed.stop();
+            if (pcmfeed != null) pcmfeed.stop( !stopImmediatelly );
             decoder.stop();
             reader.stop();
 
@@ -672,6 +674,14 @@ public class AACPlayer {
                 Log.d( LOG, "header: key=" + me.getKey() + ", val=" + s);
             }
         }
+    }
+
+
+    /**
+     * This method is called before opening the file.
+     * Actually this method does nothing, but subclasses may override it.
+     */
+    protected void processFileType( String file ) {
     }
 
 
