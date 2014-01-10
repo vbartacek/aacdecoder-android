@@ -73,6 +73,7 @@ public class AACPlayer {
 
     protected boolean stopped;
     protected boolean metadataEnabled = true;
+    protected boolean responseCodeCheckEnabled = true;
 
     protected int audioBufferCapacityMs;
     protected int decodeBufferCapacityMs;
@@ -226,6 +227,28 @@ public class AACPlayer {
         this.metadataEnabled = metadataEnabled;
     }
 
+
+    /**
+     * Returns the flag if the HTTP / shoutcast response code should be checked or not.
+     */
+    public boolean getResponseCodeCheckEnabled() {
+        return responseCodeCheckEnabled;
+    }
+
+
+    /**
+     * Sets the flag if the HTTP / shoutcast response code should be checked or not.
+     * This method was added for backward compatibility. By disabling the check
+     * you also force pre-Kitkat devices to use original HttpURLConnection implementation
+     * even for shoutcast streams.
+     * This is enabled by default.
+     * @since 0.8
+     */
+    public void setResponseCodeCheckEnabled( boolean responseCodeCheckEnabled ) {
+        this.responseCodeCheckEnabled = responseCodeCheckEnabled;
+    }
+
+
     /**
      * Sets the encoding for the metadata strings.
      * If not set, then UTF-8 is used.
@@ -287,6 +310,7 @@ public class AACPlayer {
             InputStream is = null;
 
             try {
+                if (responseCodeCheckEnabled) checkResponseCode( cn );
                 processHeaders( cn );
                 is = getInputStream( cn );
 
@@ -497,18 +521,47 @@ public class AACPlayer {
             conn.connect();
 
             try {
-                if (conn.getHeaderFields() == null) {
-                    Log.w( LOG, "No header fields in response for url " + url );
+                if (conn instanceof HttpURLConnection) {
+                    HttpURLConnection httpConn = (HttpURLConnection) conn;
 
-                    if (url.startsWith( "http:" )) {
-                        url = "icy" + url.substring( 4 );
+                    try {
+                        // pre-KitKat returns -1:
+                        if (httpConn.getResponseCode() == -1) {
+                            if (!responseCodeCheckEnabled) {
+                                Log.w( LOG, "No response code, but ignoring - for url " + url );
+                                close = false;
+                                break;
+                            }
+                            else {
+                                Log.w( LOG, "No response code for url " + url );
+                            }
+                        }
+                        else {
+                            // standard HTTP response / IcyURLConnection response
+                            close = false;
+                            break;
+                        }
                     }
-                    else throw new IOException( "Invalid protocol response - no headers detected" );
+                    catch (Exception e) {
+                        // KitKat throws exception:
+                        // java.net.ProtocolException: Unexpected status line: ICY 200 OK
+                        Log.w( LOG, "Invalid response code for url " + url + " - " + e );
+                    }
+                }
+                else if (conn.getHeaderFields() == null) {
+                    // sanity code
+                    Log.w( LOG, "No header fields in response for url " + url );
                 }
                 else {
                     close = false;
                     break;
                 }
+
+                if (url.startsWith( "http:" )) {
+                    url = "icy" + url.substring( 4 );
+                    Log.i( LOG, "Trying to re-connect as ICY url " + url );
+                }
+                else throw new IOException( "Invalid response - no response code / headers detected" );
             }
             finally {
                 if (close) {
@@ -532,6 +585,31 @@ public class AACPlayer {
     protected void prepareConnection( URLConnection conn ) {
         // request for dynamic metadata:
         if (metadataEnabled) conn.setRequestProperty("Icy-MetaData", "1");
+    }
+
+
+    /**
+     * Checks the response code.
+     * Actually for HttpURLConnection it throws an exception
+     * when the response code is not between 200 and 299.
+     */
+    protected void checkResponseCode( URLConnection conn ) throws Exception {
+        if (conn instanceof HttpURLConnection) {
+            HttpURLConnection httpConn = (HttpURLConnection) conn;
+
+            int responseCode = httpConn.getResponseCode();
+
+            if (responseCode == -1) {
+                Log.w( LOG, "Empty response code: " + responseCode + " " + httpConn.getResponseMessage());
+            }
+            else if (responseCode < 200 || responseCode > 299) {
+                Log.e( LOG, "Error response code: " + responseCode + " " + httpConn.getResponseMessage());
+                throw new IOException( "Error response: " + responseCode + " " + httpConn.getResponseMessage());
+            }
+            else {
+                Log.d( LOG, "Response: " + responseCode + " " + httpConn.getResponseMessage());
+            }
+        }
     }
 
 
