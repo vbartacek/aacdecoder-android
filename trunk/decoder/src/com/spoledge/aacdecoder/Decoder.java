@@ -39,6 +39,8 @@ public class Decoder {
         private int roundBytesConsumed;
         private int roundSamples;
 
+        private short[] firstSamples;
+
 
         ////////////////////////////////////////////////////////////////////////////
         // Public
@@ -104,6 +106,24 @@ public class Decoder {
          */
         public int getRoundSamples() {
             return roundSamples;
+        }
+
+
+        /**
+         * Returns the samples read by the start() method.
+         * @return the sample or null if the decoder does not support this
+         */
+        public short[] getFirstSamples() {
+            return firstSamples;
+        }
+
+
+        /**
+         * Sets the first samples data.
+         * This method can be used only for clearing memory.
+         */
+        public void setFirstSamples( short[] firstSamples ) {
+            this.firstSamples = firstSamples;
         }
     }
 

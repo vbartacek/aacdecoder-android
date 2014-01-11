@@ -443,6 +443,14 @@ public class AACPlayer {
             pcmfeedThread = new Thread( pcmfeed );
             pcmfeedThread.start();
 
+            if (info.getFirstSamples() != null) {
+                short[] firstSamples = info.getFirstSamples();
+                Log.d( LOG, "First samples length: " + firstSamples.length );
+
+                pcmfeed.feed( firstSamples, firstSamples.length );
+                info.setFirstSamples( null );
+            }
+
             do {
                 long tsStart = System.currentTimeMillis();
 
