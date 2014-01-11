@@ -82,6 +82,11 @@ public class AACPlayer {
 
     protected Decoder decoder;
 
+    /**
+     * The bit rate declared by the stream header - kb/s.
+     */
+    protected int declaredBitRate = -1;
+
     // variables used for computing average bitrate
     private int sumKBitSecRate = 0;
     private int countKBitSecRate = 0;
@@ -259,6 +264,16 @@ public class AACPlayer {
 
 
     /**
+     * Returns the bit-rate as declared by the stream metadata.
+     * @return the bitrate in kb/s or -1 if unknown
+     * @since 0.8
+     */
+    public int getDeclaredBitRate() {
+        return declaredBitRate;
+    }
+
+
+    /**
      * Plays a stream asynchronously.
      * This method starts a new thread.
      * @param url the URL of the stream or file
@@ -302,9 +317,13 @@ public class AACPlayer {
     /**
      * Plays a stream synchronously.
      * @param url the URL of the stream or file
-     * @param expectedKBitSecRate the expected average bitrate in kbit/sec; -1 means unknown
+     * @param expectedKBitSecRate the expected average bitrate in kbit/sec;
+     *      -1 means unknown;
+     *      when setting this parameter, then the declared bit-rate from the stream header is ignored
      */
     public void play( String url, int expectedKBitSecRate ) throws Exception {
+        declaredBitRate = -1;
+
         if (url.indexOf( ':' ) > 0) {
             URLConnection cn = openConnection( url );
             InputStream is = null;
@@ -314,8 +333,9 @@ public class AACPlayer {
                 processHeaders( cn );
                 is = getInputStream( cn );
 
-                // TODO: try to get the expectedKBitSecRate from headers
-                play( is, expectedKBitSecRate);
+                // try to get the expectedKBitSecRate from headers
+                // but if then expectedKBitSecRate is passed, then ignore the declared one:
+                play( is, expectedKBitSecRate != -1 ? expectedKBitSecRate : declaredBitRate );
             }
             finally {
                 try { is.close(); } catch (Throwable t) {}
@@ -652,6 +672,25 @@ public class AACPlayer {
      */
     protected void processHeaders( URLConnection cn ) {
         dumpHeaders( cn );
+
+        String br = cn.getHeaderField( "icy-br" );
+
+        if (br != null) {
+            try {
+                declaredBitRate = Integer.parseInt( br );
+
+                if (declaredBitRate > 7) {
+                    Log.d( LOG, "Declared bitrate is " + declaredBitRate + " kb/s" );
+                }
+                else {
+                    Log.w( LOG, "Declared bitrate is too low - ignoring: " + declaredBitRate + " kb/s" );
+                    declaredBitRate = -1;
+                }
+            }
+            catch (Exception e) {
+                Log.w( LOG, "Cannot parse declared bit-rate '" + br + "'" );
+            }
+        }
 
         if (playerCallback != null) {
             for (java.util.Map.Entry<String, java.util.List<String>> me : cn.getHeaderFields().entrySet()) {
