@@ -75,7 +75,8 @@ static long aacd_opencoremp3_start( AACDInfo *info, unsigned char *buffer, unsig
     tPVMP3DecoderExternal *pExt = oc->pExt;
 
     // prepare the first samples buffer:
-    pExt->pOutputBuffer             = malloc(4096 * sizeof(int16_t));
+    //pExt->pOutputBuffer             = malloc(4096 * sizeof(int16_t));
+    pExt->pOutputBuffer             = aacd_prepare_samples( info, 4096 );
     pExt->outputFrameSize           = 4096;
 
     pExt->pInputBuffer              = buffer;
@@ -143,7 +144,7 @@ static long aacd_opencoremp3_start( AACDInfo *info, unsigned char *buffer, unsig
         if (buffer_size <= 64) break;
     }
 
-    free(pExt->pOutputBuffer);
+    //free(pExt->pOutputBuffer);
     pExt->pOutputBuffer = NULL;
 
     if (status != NO_DECODING_ERROR)
@@ -156,6 +157,9 @@ static long aacd_opencoremp3_start( AACDInfo *info, unsigned char *buffer, unsig
 
     info->samplerate = pExt->samplingRate;
     info->channels = pExt->num_channels;
+
+    info->frame_bytesconsumed = pExt->inputBufferUsedLength;
+    info->frame_samples = pExt->outputFrameSize;
 
     return totalConsumed;
 }
@@ -178,7 +182,7 @@ static int aacd_opencoremp3_decode( AACDInfo *info, unsigned char *buffer, unsig
 
     if (status != NO_DECODING_ERROR)
     {
-        AACD_ERROR( "decode() bytesleft=%d, status=%d", buffer_size, status );
+        AACD_ERROR( "decode() bytesleft=%lu, status=%d", buffer_size, status );
         return -1;
     }
 
