@@ -1,4 +1,5 @@
 #summary The Release Notes
+#labels Featured
 
 = Release Notes =
 
