@@ -56,5 +56,28 @@ So the solution is to register the IcyURLStreamHandler for URLs having a special
  * The URLStreamHandlerFactory can be registered at most once for each JVM instance (see javadoc for java.net.URL).
  * When using this aacdecoder library, you *MUST* register the "icy" protocol prefix exactly as described above
 
+Now you can open your "icy" streams:
+{{{
+    java.net.URL url = new java.net.URL( "icy://127.0.0.1:8080" );
+    java.net.URLConnection conn = url.openConnection();
+    ...
+}}}
+
+= Note about AACPlayer =
+
+The AACPlayer assumes that the "icy" protocol is registered in the JVM. When a standard http URL is passed to AACPlayer, then it tries to open it and detects whether the response code can be parsed using the default implementation of the URLConnection. If a response code is present, then it continues and starts playing the music.
+
+But when the response code is not present (Shoutcast stream), then it closes the stream and re-connects again using "icy" protocol prefix (replacing "http" by "icy" in the URL). If the IcyURLStreamHandler is registered, then it is selected and stream can be parsed and played.
+
+This solution has a drawback - opening the stream twice. You can avoid it either by:
+ * passing "icy" URLs to AACplayer (e.g. "icy://my.stream.server" )
+ * for pre-Kitkat (Android 4.4) devices you can enable the backward compatibility option:
+{{{
+    AACPlayer player = new AACPlayer();
+    player.setResponseCodeCheckEnabled( false );
+}}}
+
+We recommend using the first option, because the second one skips the check of the server response code.
+
 ----
 <g:plusone size="medium"></g:plusone>
