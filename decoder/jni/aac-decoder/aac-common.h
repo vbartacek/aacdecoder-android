@@ -185,6 +185,12 @@ typedef struct AACDDecoder {
 int aacd_adts_sync(unsigned char *buffer, int len);
 
 
+/**
+ * Prepares output buffer.
+ */
+jshort* aacd_prepare_samples( AACDInfo *info, jint outLen );
+
+
 #ifdef __cplusplus
 }
 #endif

@@ -38,6 +38,7 @@ struct JavaDecoderInfo {
     jfieldID roundFrames;
     jfieldID roundBytesConsumed;
     jfieldID roundSamples;
+    jfieldID firstSamples;
 };
 
 struct JavaArrayBufferReader {
@@ -114,6 +115,7 @@ static void aacd_start_info2java( AACDInfo *info )
         javaDecoderInfo.roundFrames = (jfieldID) (*env)->GetFieldID( env, javaDecoderInfo.clazz, "roundFrames", "I");
         javaDecoderInfo.roundBytesConsumed = (jfieldID) (*env)->GetFieldID( env, javaDecoderInfo.clazz, "roundBytesConsumed", "I");
         javaDecoderInfo.roundSamples = (jfieldID) (*env)->GetFieldID( env, javaDecoderInfo.clazz, "roundSamples", "I");
+        javaDecoderInfo.firstSamples = (jfieldID) (*env)->GetFieldID( env, javaDecoderInfo.clazz, "firstSamples", "[S");
     }
 
     AACD_TRACE( "aacd_start_info2java() - storing info sampleRate=%d, channels=%d",
@@ -121,6 +123,19 @@ static void aacd_start_info2java( AACDInfo *info )
 
     (*env)->SetIntField( env, jinfo, javaDecoderInfo.sampleRate, (jint) info->samplerate);
     (*env)->SetIntField( env, jinfo, javaDecoderInfo.channels, (jint) info->channels);
+
+    // store the first samples if any:
+    if (info->samples && info->frame_samples) {
+        jshortArray outBuf = (*env)->NewShortArray( env, info->frame_samples );
+        (*env)->SetShortArrayRegion( env, outBuf, 0, info->frame_samples, info->samples );
+        (*env)->SetObjectField( env, jinfo, javaDecoderInfo.firstSamples, outBuf );
+
+        (*env)->SetIntField( env, jinfo, javaDecoderInfo.frameMaxBytesConsumed, (jint) info->frame_bytesconsumed);
+        (*env)->SetIntField( env, jinfo, javaDecoderInfo.frameSamples, (jint) info->frame_samples);
+        (*env)->SetIntField( env, jinfo, javaDecoderInfo.roundFrames, (jint) 1);
+        (*env)->SetIntField( env, jinfo, javaDecoderInfo.roundBytesConsumed, (jint) info->frame_bytesconsumed);
+        (*env)->SetIntField( env, jinfo, javaDecoderInfo.roundSamples, (jint) info->frame_samples);
+    }
 
     AACD_TRACE( "aacd_start_info2java() - finished" );
 }
@@ -282,7 +297,7 @@ static unsigned char* aacd_read_buffer( AACDInfo *info )
 /**
  * Prepares output buffer.
  */
-static jshort* aacd_prepare_samples( AACDInfo *info, jint outLen )
+jshort* aacd_prepare_samples( AACDInfo *info, jint outLen )
 {
     if (info->samplesLen < outLen)
     {
@@ -424,7 +439,7 @@ JNIEXPORT jint JNICALL Java_com_spoledge_aacdecoder_Decoder_nativeStart
 
     if (err < 0)
     {
-        AACD_ERROR( "start() failed err=%d", err );
+        AACD_ERROR( "start() failed err=%ld", err );
         aacd_stop( info );
 
         return 0;

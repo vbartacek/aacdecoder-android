@@ -139,5 +139,18 @@ public class MultiPlayer extends AACPlayer {
         throw new RuntimeException( "Could not recognize the type of the stream." );
     }
 
+
+    /**
+     * This method is called before opening the file.
+     * Detects the file type - according to the suffix.
+     */
+    @Override
+    protected void processFileType( String file ) {
+        boolean isMp3 = file.toLowerCase().endsWith( ".mp3" );
+
+        Log.i( LOG, "Setting " + (isMp3 ? "MP3" : "AAC") + " decoder for file " + file );
+        setDecoder( isMp3 ? mp3Decoder : aacDecoder );
+    }
+
 }
 

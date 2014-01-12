@@ -96,7 +96,9 @@ static long aacd_opencore_start( AACDInfo *info, unsigned char *buffer, unsigned
     pExt->frameLength               = 0;
 
     // prepare the first samples buffer:
-    pExt->pOutputBuffer             = malloc(4096 * sizeof(int16_t));
+    //pExt->pOutputBuffer             = malloc(4096 * sizeof(int16_t));
+    //pExt->pOutputBuffer_plus        = pExt->pOutputBuffer + 2048;
+    pExt->pOutputBuffer             = aacd_prepare_samples( info, 4096 );
     pExt->pOutputBuffer_plus        = pExt->pOutputBuffer + 2048;
 
     int32_t status;
@@ -138,7 +140,7 @@ static long aacd_opencore_start( AACDInfo *info, unsigned char *buffer, unsigned
         else AACD_WARN( "start() Input buffer too small" );
     }
 
-    free(pExt->pOutputBuffer);
+    //free( pExt->pOutputBuffer );
 
     if (status != MP4AUDEC_SUCCESS)
     {
@@ -178,6 +180,9 @@ static long aacd_opencore_start( AACDInfo *info, unsigned char *buffer, unsigned
     oc->frameSamplesFactor = pExt->desiredChannels;
     if (2 == pExt->aacPlusUpsamplingFactor) oc->frameSamplesFactor *= 2;
 
+    info->frame_bytesconsumed = pExt->inputBufferUsedLength;
+    info->frame_samples = pExt->frameLength * oc->frameSamplesFactor;
+
     return pExt->inputBufferUsedLength;
 }
 
@@ -200,7 +205,7 @@ static int aacd_opencore_decode( AACDInfo *info, unsigned char *buffer, unsigned
 
     if (status != MP4AUDEC_SUCCESS && status != SUCCESS)
     {
-        AACD_ERROR( "decode() bytesleft=%d, status=%d", buffer_size, status );
+        AACD_ERROR( "decode() bytesleft=%lu, status=%d", buffer_size, status );
         return -1;
     }
 

@@ -73,6 +73,7 @@ public class AACPlayer {
 
     protected boolean stopped;
     protected boolean metadataEnabled = true;
+    protected boolean responseCodeCheckEnabled = true;
 
     protected int audioBufferCapacityMs;
     protected int decodeBufferCapacityMs;
@@ -80,6 +81,11 @@ public class AACPlayer {
     protected String metadataCharEnc;
 
     protected Decoder decoder;
+
+    /**
+     * The bit rate declared by the stream header - kb/s.
+     */
+    protected int declaredBitRate = -1;
 
     // variables used for computing average bitrate
     private int sumKBitSecRate = 0;
@@ -226,12 +232,44 @@ public class AACPlayer {
         this.metadataEnabled = metadataEnabled;
     }
 
+
+    /**
+     * Returns the flag if the HTTP / shoutcast response code should be checked or not.
+     */
+    public boolean getResponseCodeCheckEnabled() {
+        return responseCodeCheckEnabled;
+    }
+
+
+    /**
+     * Sets the flag if the HTTP / shoutcast response code should be checked or not.
+     * This method was added for backward compatibility. By disabling the check
+     * you also force pre-Kitkat devices to use original HttpURLConnection implementation
+     * even for shoutcast streams.
+     * This is enabled by default.
+     * @since 0.8
+     */
+    public void setResponseCodeCheckEnabled( boolean responseCodeCheckEnabled ) {
+        this.responseCodeCheckEnabled = responseCodeCheckEnabled;
+    }
+
+
     /**
      * Sets the encoding for the metadata strings.
      * If not set, then UTF-8 is used.
      */
     public void setMetadataCharEnc( String metadataCharEnc ) {
         this.metadataCharEnc = metadataCharEnc;
+    }
+
+
+    /**
+     * Returns the bit-rate as declared by the stream metadata.
+     * @return the bitrate in kb/s or -1 if unknown
+     * @since 0.8
+     */
+    public int getDeclaredBitRate() {
+        return declaredBitRate;
     }
 
 
@@ -279,23 +317,25 @@ public class AACPlayer {
     /**
      * Plays a stream synchronously.
      * @param url the URL of the stream or file
-     * @param expectedKBitSecRate the expected average bitrate in kbit/sec; -1 means unknown
+     * @param expectedKBitSecRate the expected average bitrate in kbit/sec;
+     *      -1 means unknown;
+     *      when setting this parameter, then the declared bit-rate from the stream header is ignored
      */
     public void play( String url, int expectedKBitSecRate ) throws Exception {
+        declaredBitRate = -1;
+
         if (url.indexOf( ':' ) > 0) {
-            URLConnection cn = new URL( url ).openConnection();
-
-            prepareConnection( cn );
-            cn.connect();
-
+            URLConnection cn = openConnection( url );
             InputStream is = null;
 
             try {
+                if (responseCodeCheckEnabled) checkResponseCode( cn );
                 processHeaders( cn );
                 is = getInputStream( cn );
 
-                // TODO: try to get the expectedKBitSecRate from headers
-                play( is, expectedKBitSecRate);
+                // try to get the expectedKBitSecRate from headers
+                // but if then expectedKBitSecRate is passed, then ignore the declared one:
+                play( is, expectedKBitSecRate != -1 ? expectedKBitSecRate : declaredBitRate );
             }
             finally {
                 try { is.close(); } catch (Throwable t) {}
@@ -306,6 +346,7 @@ public class AACPlayer {
             }
         }
         else {
+            processFileType( url );
             InputStream is = new FileInputStream( url );
 
             try {
@@ -402,6 +443,14 @@ public class AACPlayer {
             pcmfeedThread = new Thread( pcmfeed );
             pcmfeedThread.start();
 
+            if (info.getFirstSamples() != null) {
+                short[] firstSamples = info.getFirstSamples();
+                Log.d( LOG, "First samples length: " + firstSamples.length );
+
+                pcmfeed.feed( firstSamples, firstSamples.length );
+                info.setFirstSamples( null );
+            }
+
             do {
                 long tsStart = System.currentTimeMillis();
 
@@ -428,9 +477,10 @@ public class AACPlayer {
             } while (!stopped);
         }
         finally {
+            boolean stopImmediatelly = stopped;
             stopped = true;
 
-            if (pcmfeed != null) pcmfeed.stop();
+            if (pcmfeed != null) pcmfeed.stop( !stopImmediatelly );
             decoder.stop();
             reader.stop();
 
@@ -479,6 +529,84 @@ public class AACPlayer {
     }
 
 
+
+    /**
+     * Opens connection.
+     * Tries to recognize if the stream is a standard HTTP or SHOUTCAST.
+     * Since Android 4.4 Kitkat the HttpURLConnection implementation is strict
+     * and does not allow SHOUTCAST response "ICY 200 OK".
+     * If we detect this, we try to use alternate protocol "icy" and 
+     * our auxiliar implementation - IcyURLConnection.
+     * NOTE: URL.setURLStreamHandlerFactory() must be called - this library does not call it
+     * itself.
+     */
+    protected URLConnection openConnection( String url ) throws IOException {
+        URLConnection conn = null;
+        boolean close = true;
+
+        while (true) {
+            conn = new URL( url ).openConnection();
+
+            prepareConnection( conn );
+            conn.connect();
+
+            try {
+                if (conn instanceof HttpURLConnection) {
+                    HttpURLConnection httpConn = (HttpURLConnection) conn;
+
+                    try {
+                        // pre-KitKat returns -1:
+                        if (httpConn.getResponseCode() == -1) {
+                            if (!responseCodeCheckEnabled) {
+                                Log.w( LOG, "No response code, but ignoring - for url " + url );
+                                close = false;
+                                break;
+                            }
+                            else {
+                                Log.w( LOG, "No response code for url " + url );
+                            }
+                        }
+                        else {
+                            // standard HTTP response / IcyURLConnection response
+                            close = false;
+                            break;
+                        }
+                    }
+                    catch (Exception e) {
+                        // KitKat throws exception:
+                        // java.net.ProtocolException: Unexpected status line: ICY 200 OK
+                        Log.w( LOG, "Invalid response code for url " + url + " - " + e );
+                    }
+                }
+                else if (conn.getHeaderFields() == null) {
+                    // sanity code
+                    Log.w( LOG, "No header fields in response for url " + url );
+                }
+                else {
+                    close = false;
+                    break;
+                }
+
+                if (url.startsWith( "http:" )) {
+                    url = "icy" + url.substring( 4 );
+                    Log.i( LOG, "Trying to re-connect as ICY url " + url );
+                }
+                else throw new IOException( "Invalid response - no response code / headers detected" );
+            }
+            finally {
+                if (close) {
+                    if (conn instanceof HttpURLConnection) {
+                        try { ((HttpURLConnection)conn).disconnect(); } catch (Throwable t) {}
+                    }
+                    conn = null;
+                }
+            }
+        }
+
+        return conn;
+    }
+
+
     /**
      * Prepares the connection.
      * This method is called before a connection is opened.
@@ -487,6 +615,31 @@ public class AACPlayer {
     protected void prepareConnection( URLConnection conn ) {
         // request for dynamic metadata:
         if (metadataEnabled) conn.setRequestProperty("Icy-MetaData", "1");
+    }
+
+
+    /**
+     * Checks the response code.
+     * Actually for HttpURLConnection it throws an exception
+     * when the response code is not between 200 and 299.
+     */
+    protected void checkResponseCode( URLConnection conn ) throws Exception {
+        if (conn instanceof HttpURLConnection) {
+            HttpURLConnection httpConn = (HttpURLConnection) conn;
+
+            int responseCode = httpConn.getResponseCode();
+
+            if (responseCode == -1) {
+                Log.w( LOG, "Empty response code: " + responseCode + " " + httpConn.getResponseMessage());
+            }
+            else if (responseCode < 200 || responseCode > 299) {
+                Log.e( LOG, "Error response code: " + responseCode + " " + httpConn.getResponseMessage());
+                throw new IOException( "Error response: " + responseCode + " " + httpConn.getResponseMessage());
+            }
+            else {
+                Log.d( LOG, "Response: " + responseCode + " " + httpConn.getResponseMessage());
+            }
+        }
     }
 
 
@@ -528,6 +681,25 @@ public class AACPlayer {
     protected void processHeaders( URLConnection cn ) {
         dumpHeaders( cn );
 
+        String br = cn.getHeaderField( "icy-br" );
+
+        if (br != null) {
+            try {
+                declaredBitRate = Integer.parseInt( br );
+
+                if (declaredBitRate > 7) {
+                    Log.d( LOG, "Declared bitrate is " + declaredBitRate + " kb/s" );
+                }
+                else {
+                    Log.w( LOG, "Declared bitrate is too low - ignoring: " + declaredBitRate + " kb/s" );
+                    declaredBitRate = -1;
+                }
+            }
+            catch (Exception e) {
+                Log.w( LOG, "Cannot parse declared bit-rate '" + br + "'" );
+            }
+        }
+
         if (playerCallback != null) {
             for (java.util.Map.Entry<String, java.util.List<String>> me : cn.getHeaderFields().entrySet()) {
                 for (String s : me.getValue()) {
@@ -539,11 +711,24 @@ public class AACPlayer {
 
 
     protected void dumpHeaders( URLConnection cn ) {
+        if (cn.getHeaderFields() == null) {
+            Log.d( LOG, "No headers - not an HTTP response ?" );
+            return;
+        }
+
         for (java.util.Map.Entry<String, java.util.List<String>> me : cn.getHeaderFields().entrySet()) {
             for (String s : me.getValue()) {
                 Log.d( LOG, "header: key=" + me.getKey() + ", val=" + s);
             }
         }
+    }
+
+
+    /**
+     * This method is called before opening the file.
+     * Actually this method does nothing, but subclasses may override it.
+     */
+    protected void processFileType( String file ) {
     }
 
 
