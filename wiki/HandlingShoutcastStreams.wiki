@@ -1,0 +1,60 @@
+#summary How to handle Shoutcast "ICY" responses in Android (Java).
+
+= Introduction =
+
+Shoutcast streams do not return standard HTTP response which should look like:
+{{{
+HTTP/1.0 200 OK
+}}}
+
+but they return a special "ICY" response:
+{{{
+ICY 200 OK
+}}}
+
+In Android before version 4.4 (Kitkat), the Java implementation of the (Http)URLConnection was not able to parse the response code, but it was able to parse the headers and even content (returning the standard `InputStream`).
+
+Unfortunately starting with Android 4.4 Kitkat the implementation of the HttpURLConnection has been changed, so Shoutcast streams cannot be opened using URLConnection at all.
+
+For handling this situation we created a simple workaround solution.
+
+= Solution =
+
+We provide two classes:
+ * [https://code.google.com/p/aacdecoder-android/source/browse/trunk/decoder/src/com/spoledge/aacdecoder/IcyURLConnection.java IcyURLConnection.java]
+ * [https://code.google.com/p/aacdecoder-android/source/browse/trunk/decoder/src/com/spoledge/aacdecoder/IcyURLStreamHandler.java IcyURLStreamHandler.java]
+
+The first one - IcyURLConnection - is a simple implementation of the ICY / HTTP URL connection. Maybe it should be called "HttpLikeURLConnection", because it accepts all stream responses in the format:
+{{{
+xxx yyy zzz
+}}}
+
+where _xxx_ can be a any word, _yyy_ is a response code and _zzz_ is a response message. Precisely using regexp:
+{{{
+^[^ ]+ \d+ .*$
+}}}
+
+The second one - IcyURLStreamHandler - is a utility class for creating the IcyURLConnection. The URLStreamHandler is used when Java needs to create a handler for certain protocol - like http or ftp.
+
+So the solution is to register the IcyURLStreamHandler for URLs having a special protocol prefix. For example we want to register it for protocol prefix "icy", we can do this:
+{{{
+    try {
+        java.net.URL.setURLStreamHandlerFactory( new java.net.URLStreamHandlerFactory(){
+            public java.net.URLStreamHandler createURLStreamHandler( String protocol ) {
+                Log.d( LOG, "Asking for stream handler for protocol: '" + protocol + "'" );
+                if ("icy".equals( protocol )) return new com.spoledge.aacdecoder.IcyURLStreamHandler();
+                return null;
+            }
+        });
+    }
+    catch (Throwable t) {
+        Log.w( LOG, "Cannot set the ICY URLStreamHandler - maybe already set ? - " + t );
+    }
+}}}
+
+*Important notes:*
+ * The URLStreamHandlerFactory can be registered at most once for each JVM instance (see javadoc for java.net.URL).
+ * When using this aacdecoder library, you *MUST* register the "icy" protocol prefix exactly as described above
+
+----
+<g:plusone size="medium"></g:plusone>
