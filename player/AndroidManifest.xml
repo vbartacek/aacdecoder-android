@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:versionCode="1" android:versionName="0.7-SNAPSHOT" package="com.spoledge.aacplay">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:versionCode="1" android:versionName="0.8-SNAPSHOT" package="com.spoledge.aacplay">
 
 	<uses-permission android:name="android.permission.INTERNET"/>
 	<uses-sdk android:minSdkVersion="3"/>
