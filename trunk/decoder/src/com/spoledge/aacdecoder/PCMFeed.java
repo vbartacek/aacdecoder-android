@@ -47,6 +47,21 @@ import android.util.Log;
  */
 public class PCMFeed implements Runnable, AudioTrack.OnPlaybackPositionUpdateListener {
 
+    /**
+     * Constant value when reached a marker position.
+     * @see markerReachedAction
+     * @since 0.8
+     */
+    public static final int MARKER_REACHED_ACTION_IGNORE = -1;
+
+    /**
+     * Constant value for pausing track when reached a marker position.
+     * @see markerReachedAction
+     * @since 0.8
+     */
+    public static final int MARKER_REACHED_ACTION_PAUSE = 1;
+
+
     private static final String LOG = "PCMFeed";
 
 
@@ -82,6 +97,7 @@ public class PCMFeed implements Runnable, AudioTrack.OnPlaybackPositionUpdateLis
 
     /**
      * Stopped by End-Of-File.
+     * @since 0.8
      */
     protected boolean stoppedByEOF;
 
@@ -109,6 +125,13 @@ public class PCMFeed implements Runnable, AudioTrack.OnPlaybackPositionUpdateLis
      */
     protected int writtenTotal = 0;
 
+
+    /**
+     * The action which to be executed when the marker position is reached.
+     * Actually this is used for very short audio data workaround.
+     * @since 0.8
+     */
+    protected int markerReachedAction = MARKER_REACHED_ACTION_IGNORE;
 
 
     ////////////////////////////////////////////////////////////////////////////
@@ -204,6 +227,7 @@ public class PCMFeed implements Runnable, AudioTrack.OnPlaybackPositionUpdateLis
      * This can be called in any state.
      * @param eof if true then stops after no data are available (eof);
      *      otherwise stops immediatelly
+     * @since 0.8
      */
     public synchronized void stop( boolean eof ) {
         if (eof) {
@@ -267,6 +291,11 @@ public class PCMFeed implements Runnable, AudioTrack.OnPlaybackPositionUpdateLis
      * has been reached by the playback head.
      */
     public void onMarkerReached( AudioTrack track ) {
+        Log.d( LOG, "onMarkerReached()" );
+
+        if (markerReachedAction == MARKER_REACHED_ACTION_PAUSE) {
+            track.pause();
+        }
     }
 
 
@@ -439,9 +468,23 @@ public class PCMFeed implements Runnable, AudioTrack.OnPlaybackPositionUpdateLis
     protected void waitForLastTone() {
         // very small files are not even started
         // we try to start them now, but Android is waiting
-        // in STREAM mode for more data - that is why very small files cannot
-        // be played:
+        // in STREAM mode for more data - so we write dummy data to the track
+        // and set the notification marker:
+
         if (!isPlaying) {
+            // we've found that 2 seconds is enough:
+            int minSamples = msToSamples( 2000, sampleRate, channels );
+
+            if (writtenTotal < minSamples) {
+                Log.d( LOG, "Filling dummy data to audio buffer" );
+                short[] dummy = new short[ minSamples - writtenTotal ];
+
+                // once is enough - it means that buffer is probably full:
+                audioTrack.write( dummy, 0, dummy.length );
+                audioTrack.setNotificationMarkerPosition( writtenTotal / channels );
+                markerReachedAction = MARKER_REACHED_ACTION_PAUSE;
+            }
+
             Log.d( LOG, "start of AudioTrack" );
             audioTrack.play();
             isPlaying = true;
@@ -454,7 +497,7 @@ public class PCMFeed implements Runnable, AudioTrack.OnPlaybackPositionUpdateLis
         int count = 5;
 
         do {
-            // sleep a while
+            // sleep a while - it is safer than waiting - avoiding deadlock:
             try { Thread.sleep( 100 ); } catch (InterruptedException e) {}
 
             // obtain the current buffer
