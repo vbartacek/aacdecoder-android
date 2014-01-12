@@ -47,6 +47,8 @@ import com.spoledge.aacdecoder.PlayerCallback;
  */
 public class AACPlayerActivity extends Activity implements View.OnClickListener, PlayerCallback {
 
+    private static final String LOG = "AACPlayerActivity";
+
     private History history;
     private AutoCompleteTextView urlView;
     private Button btnPlay;
@@ -191,7 +193,7 @@ public class AACPlayerActivity extends Activity implements View.OnClickListener,
             }
         }
         catch (Exception e) {
-            Log.e( "AACPlayerActivity", "exc" , e );
+            Log.e( LOG, "exc" , e );
         }
     }
 
@@ -241,6 +243,19 @@ public class AACPlayerActivity extends Activity implements View.OnClickListener,
 
         urlView.setAdapter( history.getArrayAdapter());
         uiHandler = new Handler();
+
+        try {
+            java.net.URL.setURLStreamHandlerFactory( new java.net.URLStreamHandlerFactory(){
+                public java.net.URLStreamHandler createURLStreamHandler( String protocol ) {
+                    Log.d( LOG, "Asking for stream handler for protocol: '" + protocol + "'" );
+                    if ("icy".equals( protocol )) return new com.spoledge.aacdecoder.IcyURLStreamHandler();
+                    return null;
+                }
+            });
+        }
+        catch (Throwable t) {
+            Log.w( LOG, "Cannot set the ICY URLStreamHandler - maybe already set ? - " + t );
+        }
     }
 
 

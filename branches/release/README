@@ -14,7 +14,7 @@ For this software the following license applies:
 
 ******************************************************************************
 ** AACDecoder - Freeware Advanced Audio (AAC) Decoder for Android
-** Copyright (C) 2011, 2012 Spolecne s.r.o., http://www.spoledge.com
+** Copyright (C) 2011 - 2014 Spolecne s.r.o., http://www.spoledge.com
 **  
 ** This file is a part of AACDecoder.
 **
@@ -151,7 +151,7 @@ is using it (see the player/pom.xml):
 		<dependency>
 			<groupId>com.spoledge.aacdecoder</groupId>
 			<artifactId>aacdecoder-lib</artifactId>
-			<version>0.7</version>
+			<version>0.8</version>
 			<type>apklib</type>
 		</dependency>
     </dependencies>
