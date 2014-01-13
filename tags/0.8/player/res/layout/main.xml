@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="fill_parent"
+	android:layout_height="fill_parent"
+	android:padding="2mm"
+	android:background="@drawable/main_background"
+>
+
+	<RelativeLayout
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:layout_centerInParent="true"
+	>
+
+		<LinearLayout
+			android:layout_width="fill_parent"
+			android:layout_height="fill_parent"
+			android:orientation="vertical"
+			android:paddingLeft="3mm" 
+			android:paddingRight="3mm" 
+		>
+
+			<AutoCompleteTextView
+				android:id="@+id/view_main_edit_url"
+				android:text="http://"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+			/>
+
+			<LinearLayout
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:orientation="horizontal"
+			>
+
+				<TextView
+					android:text="@string/text_buffers_audio"
+					android:gravity="left"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_weight="2"
+				/>
+
+				<TextView
+					android:text="@string/text_buffers"
+					android:gravity="center_horizontal"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_weight="5"
+				/>
+
+				<TextView
+					android:text="@string/text_buffers_decode"
+					android:gravity="right"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_weight="2"
+				/>
+
+			</LinearLayout>
+
+			<LinearLayout
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:orientation="horizontal"
+			>
+
+				<EditText
+					android:id="@+id/view_main_text_bufaudio"
+					android:inputType="number"
+					android:gravity="right"
+					android:layout_width="fill_parent"
+					android:layout_height="wrap_content"
+					android:layout_weight="1"
+				/>
+
+				<EditText
+					android:id="@+id/view_main_text_bufdecode"
+					android:inputType="number"
+					android:gravity="right"
+					android:layout_width="fill_parent"
+					android:layout_height="wrap_content"
+					android:layout_weight="1"
+				/>
+
+			</LinearLayout>
+
+			<ProgressBar
+				android:id="@+id/view_main_progress"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:visibility="invisible"
+				style="?android:attr/progressBarStyleHorizontal"
+			/>
+
+			<TextView
+				android:id="@+id/view_main_text_status"
+				android:gravity="center_horizontal"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+			/>
+
+			<LinearLayout
+				android:layout_width="fill_parent"
+				android:layout_height="fill_parent"
+				android:gravity="bottom"
+				android:orientation="vertical"
+			>
+
+				<TextView
+					android:id="@+id/view_main_text_meta_title"
+					android:gravity="center_horizontal"
+					android:layout_width="fill_parent"
+					android:layout_height="wrap_content"
+				/>
+
+				<TextView
+					android:id="@+id/view_main_text_meta_genre"
+					android:gravity="center_horizontal"
+					android:layout_width="fill_parent"
+					android:layout_height="wrap_content"
+				/>
+
+				<TextView
+					android:id="@+id/view_main_text_meta_url"
+					android:gravity="center_horizontal"
+					android:layout_width="fill_parent"
+					android:layout_height="wrap_content"
+				/>
+
+				<LinearLayout
+					android:layout_width="fill_parent"
+					android:layout_height="wrap_content"
+					android:gravity="bottom"
+					android:orientation="horizontal"
+				>
+
+					<Button
+						android:id="@+id/view_main_button_play"
+						android:text="@string/button_play"
+						android:layout_weight="1"
+						style="@style/button_main"
+					/>
+
+					<Button
+						android:id="@+id/view_main_button_stop"
+						android:text="@string/button_stop"
+						android:enabled="false"
+						android:layout_weight="1"
+						style="@style/button_main"
+					/>
+
+				</LinearLayout>
+
+			</LinearLayout>
+
+		</LinearLayout>
+
+	</RelativeLayout>
+
+</RelativeLayout>

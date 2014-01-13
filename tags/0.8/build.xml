@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="aacdecoder-android" default="all" basedir=".">
+
+	<property name="decoder.dir" location="decoder"/>
+	<property name="decoder.libs.dir" location="${decoder.dir}/libs"/>
+	<property name="player.dir" location="player"/>
+	<property name="player.libs.dir" location="${player.dir}/libs"/>
+
+
+	<target name="decoder" description="Builds the decoder part">
+		<ant dir="${decoder.dir}" inheritall="false"/>
+	</target>
+
+
+	<target name="player" description="Builds the player part">
+		<ant dir="${player.dir}" inheritall="false"/>
+	</target>
+
+
+	<target name="all" description="Builds the player part">
+		<antcall target="decoder"/>
+		<mkdir dir="${player.libs.dir}"/>
+		<copy todir="${player.dir}" file="default.properties"/>
+		<copy todir="${player.libs.dir}">
+			<fileset dir="${decoder.libs.dir}"/>
+		</copy>
+		<antcall target="player"/>
+	</target>
+
+
+	<target name="clean" description="Clears all subprojects">
+		<ant dir="player" inheritall="false" target="clean"/>
+		<ant dir="decoder" inheritall="false" target="clean"/>
+	</target>
+
+
+	<target name="clear" description="Clears all subprojects">
+		<antcall target="clean"/>
+	</target>
+
+
+	<target name="mrproper" description="Entirely clears all subprojects.">
+		<ant dir="player" inheritall="false" target="mrproper"/>
+		<ant dir="decoder" inheritall="false" target="mrproper"/>
+	</target>
+
+</project>
