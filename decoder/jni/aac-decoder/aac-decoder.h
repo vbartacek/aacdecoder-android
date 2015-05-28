@@ -33,16 +33,16 @@ extern "C" {
  * Method:    nativeStart
  * Signature: (ILcom/spoledge/aacdecoder/BufferReader;Lcom/spoledge/aacdecoder/Decoder/Info;)I
  */
-JNIEXPORT jint JNICALL Java_com_spoledge_aacdecoder_Decoder_nativeStart
-  (JNIEnv *, jobject, jint, jobject, jobject);
+JNIEXPORT jlong JNICALL Java_com_spoledge_aacdecoder_Decoder_nativeStart
+  (JNIEnv *, jobject, jlong, jobject, jobject);
 
 /*
  * Class:     com_spoledge_aacdecoder_Decoder
  * Method:    nativeDecode
  * Signature: (I[SI)I
  */
-JNIEXPORT jint JNICALL Java_com_spoledge_aacdecoder_Decoder_nativeDecode
-  (JNIEnv *, jobject, jint, jshortArray, jint);
+JNIEXPORT jlong JNICALL Java_com_spoledge_aacdecoder_Decoder_nativeDecode
+  (JNIEnv *, jobject, jlong, jshortArray, jint);
 
 /*
  * Class:     com_spoledge_aacdecoder_Decoder
@@ -50,14 +50,14 @@ JNIEXPORT jint JNICALL Java_com_spoledge_aacdecoder_Decoder_nativeDecode
  * Signature: (I)V
  */
 JNIEXPORT void JNICALL Java_com_spoledge_aacdecoder_Decoder_nativeStop
-  (JNIEnv *, jobject, jint);
+  (JNIEnv *, jobject, jlong);
 
 /*
  * Class:     com_spoledge_aacdecoder_Decoder
  * Method:    nativeDecoderGetByName
  * Signature: (Ljava/lang/String;)I
  */
-JNIEXPORT jint JNICALL Java_com_spoledge_aacdecoder_Decoder_nativeDecoderGetByName
+JNIEXPORT jlong JNICALL Java_com_spoledge_aacdecoder_Decoder_nativeDecoderGetByName
   (JNIEnv *, jclass, jstring);
 
 #ifdef __cplusplus

@@ -326,7 +326,7 @@ static void aacd_decode( AACDInfo *info, jshort *samples, jint outLen )
         // check if input buffer is filled:
         if (info->bytesleft <= info->frame_max_bytesconsumed)
         {
-            AACD_TRACE( "decode() reading input buffer" );
+	     AACD_TRACE( "decode() reading input buffer" );
             aacd_read_buffer( info );
 
             if (info->bytesleft <= info->frame_max_bytesconsumed)
@@ -409,10 +409,11 @@ static void aacd_decode( AACDInfo *info, jshort *samples, jint outLen )
  * Method:    nativeStart
  * Signature: (ILcom/spoledge/aacdecoder/BufferReader;Lcom/spoledge/aacdecoder/Decoder/Info;)I
  */
-JNIEXPORT jint JNICALL Java_com_spoledge_aacdecoder_Decoder_nativeStart
-  (JNIEnv *env, jobject thiz, jint decoder, jobject jreader, jobject aacInfo)
+JNIEXPORT jlong JNICALL Java_com_spoledge_aacdecoder_Decoder_nativeStart
+  (JNIEnv *env, jobject thiz, jlong decoder, jobject jreader, jobject aacInfo)
 {
     AACDDecoder *dec = decoder != 0 ? ((AACDDecoder*)decoder) : &aacd_opencore_decoder;
+
     AACDInfo *info = aacd_start( env, dec, jreader, aacInfo );
 
     info->env = env;
@@ -455,7 +456,7 @@ JNIEXPORT jint JNICALL Java_com_spoledge_aacdecoder_Decoder_nativeStart
 
     info->env = NULL;
 
-    return (jint) info;
+    return (jlong) info;
 }
 
 
@@ -464,8 +465,8 @@ JNIEXPORT jint JNICALL Java_com_spoledge_aacdecoder_Decoder_nativeStart
  * Method:    nativeDecode
  * Signature: (I[SI)I
  */
-JNIEXPORT jint JNICALL Java_com_spoledge_aacdecoder_Decoder_nativeDecode
-  (JNIEnv *env, jobject thiz, jint jinfo, jshortArray outBuf, jint outLen)
+JNIEXPORT jlong JNICALL Java_com_spoledge_aacdecoder_Decoder_nativeDecode
+  (JNIEnv *env, jobject thiz, jlong jinfo, jshortArray outBuf, jint outLen)
 {
     AACDInfo *info = (AACDInfo*) jinfo;
     info->env = env;
@@ -482,7 +483,7 @@ JNIEXPORT jint JNICALL Java_com_spoledge_aacdecoder_Decoder_nativeDecode
 
     info->env = NULL;
 
-    return (jint) info->round_samples;
+    return (jlong) info->round_samples;
 }
 
 
@@ -492,7 +493,7 @@ JNIEXPORT jint JNICALL Java_com_spoledge_aacdecoder_Decoder_nativeDecode
  * Signature: (I)V
  */
 JNIEXPORT void JNICALL Java_com_spoledge_aacdecoder_Decoder_nativeStop
-  (JNIEnv *env, jobject thiz, jint jinfo)
+  (JNIEnv *env, jobject thiz, jlong jinfo)
 {
     AACDInfo *info = (AACDInfo*) jinfo;
     info->env = env;
@@ -505,7 +506,7 @@ JNIEXPORT void JNICALL Java_com_spoledge_aacdecoder_Decoder_nativeStop
  * Method:    nativeDecoderGetByName
  * Signature: (Ljava/lang/String;)I
  */
-JNIEXPORT jint JNICALL Java_com_spoledge_aacdecoder_Decoder_nativeDecoderGetByName
+JNIEXPORT jlong JNICALL Java_com_spoledge_aacdecoder_Decoder_nativeDecoderGetByName
   (JNIEnv *env, jclass clazzDecoder, jstring jname)
 {
     int i;
@@ -526,7 +527,7 @@ JNIEXPORT jint JNICALL Java_com_spoledge_aacdecoder_Decoder_nativeDecoderGetByNa
 
     (*env)->ReleaseStringUTFChars( env, jname, name );
 
-    return (jint) ret;
+    return (jlong) ret;
 }
 
 

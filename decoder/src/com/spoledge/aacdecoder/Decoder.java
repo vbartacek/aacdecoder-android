@@ -19,6 +19,7 @@
 */
 package com.spoledge.aacdecoder;
 
+import android.util.Log;
 
 /**
  * The decoder which calls native implementation(s).
@@ -143,14 +144,14 @@ public class Decoder {
      * This is by default 0 - which means that the OpenCORE aacdec decoder is used.
      * Otherwise it must be set to a valid C pointer to a AACDDecoder struct.
      */
-    protected int decoder;
+    protected long decoder;
 
 
     /**
      * The decoding context pointer.
      * This is used between calls to C functions to kkep pointer to a C struct.
      */
-    protected int aacdw;
+    protected long aacdw;
 
 
     /**
@@ -169,7 +170,7 @@ public class Decoder {
     // Constructors
     ////////////////////////////////////////////////////////////////////////////
 
-    protected Decoder( int decoder ) {
+    protected Decoder(long decoder ) {
         this.decoder = decoder;
     }
 
@@ -206,7 +207,7 @@ public class Decoder {
     public static Decoder createByName( String name ) {
         loadLibrary();
 
-        int aacdw = nativeDecoderGetByName( name );
+        long aacdw = nativeDecoderGetByName( name );
 
         return aacdw != 0 ? create( aacdw ) : null;
     }
@@ -217,7 +218,7 @@ public class Decoder {
      * @param decoder the poiter to a C struct AACDDecoder. 0 means that the default OpenCORE aacdec
      *      decoder will be used.
      */
-    public static synchronized Decoder create( int decoder ) {
+    public static synchronized Decoder create( long decoder ) {
         loadLibrary();
 
         return new Decoder( decoder );
@@ -294,7 +295,7 @@ public class Decoder {
      * @param decoder the pointer to the C struct AACDDecoder or NULL
      * @return the pointer to the C struct
      */
-    protected native int nativeStart( int decoder, BufferReader reader, Info info );
+    protected native long nativeStart(long decoder, BufferReader reader, Info info );
 
 
     /**
@@ -302,21 +303,21 @@ public class Decoder {
      * Calls back Java method BufferReader.next() when additional input is needed.
      * @param aacdw the pointer to the C struct
      */
-    protected native int nativeDecode( int aacdw, short[] samples, int outLen );
+    protected native long nativeDecode( long aacdw, short[] samples, int outLen );
 
 
     /**
      * Actually stops decoding - releases all resources.
      * @param aacdw the pointer to the C struct
      */
-    protected native void nativeStop( int aacdw );
+    protected native void nativeStop( long aacdw );
 
 
     /**
      * Returns the decoder pointer struct or NULL.
      * @param name the name of the decoder
      */
-    protected static native int nativeDecoderGetByName( String name );
+    protected static native long nativeDecoderGetByName( String name );
 
 
 }
