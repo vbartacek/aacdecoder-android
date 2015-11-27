@@ -27,7 +27,7 @@ cflags_loglevels	:= $(foreach ll,$(LOGLEVELS),-DAACD_LOGLEVEL_$(ll))
 # Final library:
 LOCAL_MODULE 			:= aacdecoder
 LOCAL_SRC_FILES 		:= aac-decoder.c
-LOCAL_CFLAGS 			:= $(cflags_loglevels)
+LOCAL_CFLAGS 			:= -Wall -std=c99 $(cflags_loglevels)
 LOCAL_LDLIBS 			:= -llog
 LOCAL_STATIC_LIBRARIES 	:= decoder-opencore-aacdec decoder-opencore-mp3dec libpv_aac_dec libpv_mp3_dec
 include $(BUILD_SHARED_LIBRARY)

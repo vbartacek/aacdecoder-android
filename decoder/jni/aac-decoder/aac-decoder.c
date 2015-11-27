@@ -326,7 +326,8 @@ static void aacd_decode( AACDInfo *info, jshort *samples, jint outLen )
         // check if input buffer is filled:
         if (info->bytesleft <= info->frame_max_bytesconsumed)
         {
-	     AACD_TRACE( "decode() reading input buffer" );
+            AACD_DEBUG("bytes left/consumed: %d/%d", info->bytesleft, info->frame_max_bytesconsumed);
+            AACD_TRACE("decode() reading input buffer" );
             aacd_read_buffer( info );
 
             if (info->bytesleft <= info->frame_max_bytesconsumed)
