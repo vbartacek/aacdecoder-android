@@ -1,0 +1,29 @@
+CHANGES
+=======
+
+------------------------------------------------------------------------------
+2012-06-28 by Vaclav Bartacek
+    Fixed Parametric Stereo initialization bug.
+    All HE-AAC+ streams played mono.
+
+    Bugfix(1) - if PS extension is found in the first frame, then the PS
+        decoder is initialized, but the stream type was not correctly set
+        to MP4AUDIO_PS (remained MP4AUDIO_SBR)
+
+    Bugfix(2) - if PS extension was not found in the first frame, then PS
+        decoder was not initialized at all.
+
+    Files:
+        codecs_v2/audio/aac/dec/src/sbr_applied.cpp
+
+------------------------------------------------------------------------------
+2012-06-16 by Vaclav Bartacek
+    Applied patch found in standard Android branch.
+    Bugfix - when enabled Parametric Stereo, then crashing.
+
+    Files:
+        codecs_v2/audio/aac/dec/src/sbr_dec.cpp
+
+------------------------------------------------------------------------------
+
+
