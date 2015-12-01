@@ -1,0 +1,7 @@
+*~
+.gradle
+build
+decoder/build
+decoder/src/main/libs
+decoder/src/main/obj
+player/build
