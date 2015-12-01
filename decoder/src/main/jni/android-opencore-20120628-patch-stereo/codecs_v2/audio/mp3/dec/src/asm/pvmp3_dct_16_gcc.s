@@ -1,23 +1,31 @@
-;@ ------------------------------------------------------------------
-;@ Copyright (C) 1998-2009 PacketVideo
-;@
-;@ Licensed under the Apache License, Version 2.0 (the "License");
-;@ you may not use this file except in compliance with the License.
-;@ You may obtain a copy of the License at
-;@
-;@      http://www.apache.org/licenses/LICENSE-2.0
-;@
-;@ Unless required by applicable law or agreed to in writing, software
-;@ distributed under the License is distributed on an "AS IS" BASIS,
-;@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
-;@ express or implied.
-;@ See the License for the specific language governing permissions
-;@ and limitations under the License.
-;@ -------------------------------------------------------------------
+@ ------------------------------------------------------------------
+@ Copyright (C) 1998-2009 PacketVideo
+@
+@ Licensed under the Apache License, Version 2.0 (the "License");
+@ you may not use this file except in compliance with the License.
+@ You may obtain a copy of the License at
+@
+@      http://www.apache.org/licenses/LICENSE-2.0
+@
+@ Unless required by applicable law or agreed to in writing, software
+@ distributed under the License is distributed on an "AS IS" BASIS,
+@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+@ express or implied.
+@ See the License for the specific language governing permissions
+@ and limitations under the License.
+@ -------------------------------------------------------------------
 
 @
 @
 @   Filename: pvmp3_dct_16_gcc.s
+@
+@
+@------------------------------------------------------------------------------
+@ REVISION HISTORY
+@
+@
+@ Who:                                   Date: MM/DD/YYYY
+@ Description: 
 @
 @------------------------------------------------------------------------------
 
@@ -361,7 +369,9 @@ pvmp3_merge_in_place_N32:
 
 pvmp3_split:
         stmfd    sp!,{r4,r5,lr}
-        ldr      r2,constant16
+        adr      r1,constant16
+        ldr      r2,[r1]
+        add      r2,r1
         sub      r1,r0,#4
         mov      r3,#3
 loop1:
@@ -441,7 +451,7 @@ constant14:
 constant15:
         .word      0x5a827980
 constant16:
-        .word      CosTable_dct32 + 60
+        .word      (CosTable_dct32 + 60)-constant16
 
 
 

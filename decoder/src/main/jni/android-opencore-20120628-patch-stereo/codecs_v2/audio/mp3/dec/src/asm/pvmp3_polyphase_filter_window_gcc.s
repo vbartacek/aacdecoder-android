@@ -1,23 +1,30 @@
-;@ ------------------------------------------------------------------
-;@ Copyright (C) 1998-2009 PacketVideo
-;@
-;@ Licensed under the Apache License, Version 2.0 (the "License");
-;@ you may not use this file except in compliance with the License.
-;@ You may obtain a copy of the License at
-;@
-;@      http://www.apache.org/licenses/LICENSE-2.0
-;@
-;@ Unless required by applicable law or agreed to in writing, software
-;@ distributed under the License is distributed on an "AS IS" BASIS,
-;@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
-;@ express or implied.
-;@ See the License for the specific language governing permissions
-;@ and limitations under the License.
-;@ -------------------------------------------------------------------
+@ ------------------------------------------------------------------
+@ Copyright (C) 1998-2009 PacketVideo
+@
+@ Licensed under the Apache License, Version 2.0 (the "License");
+@ you may not use this file except in compliance with the License.
+@ You may obtain a copy of the License at
+@
+@      http://www.apache.org/licenses/LICENSE-2.0
+@
+@ Unless required by applicable law or agreed to in writing, software
+@ distributed under the License is distributed on an "AS IS" BASIS,
+@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+@ express or implied.
+@ See the License for the specific language governing permissions
+@ and limitations under the License.
+@ -------------------------------------------------------------------
 
 @
 @
 @   Filename: pvmp3_polyphase_filter_window.s
+@
+@------------------------------------------------------------------------------
+@ REVISION HISTORY
+@
+@
+@ Who:                                   Date: MM/DD/YYYY
+@ Description: 
 @
 @------------------------------------------------------------------------------
 
@@ -28,6 +35,7 @@
 .text
 
 .extern pqmfSynthWin
+.hidden pqmfSynthWin
 
 
 
@@ -39,8 +47,10 @@ pvmp3_polyphase_filter_window:
         stmfd    sp!,{r0-r2,r4-r11,lr}
 
         sub      sp,sp,#4
+        adr      r2,PolyPh_filter_coeff
+        ldr      r1,[r2]
+        add      r1,r2
         ldr      r2,[sp,#0xc]
-        ldr      r1,PolyPh_filter_coeff
 		
         sub      r2,r2,#1
         mov      r10,#1
@@ -217,7 +227,7 @@ PolyPh_filter_loop2:
         ldmfd    sp!,{r4-r11,pc}
 
 PolyPh_filter_coeff:
-        .word      pqmfSynthWin
+        .word      pqmfSynthWin-PolyPh_filter_coeff
 LOW_16BITS:
         .word      0x00007fff
 
