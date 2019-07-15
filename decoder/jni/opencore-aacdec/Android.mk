@@ -43,7 +43,6 @@ LOCAL_SRC_FILES := \
  	src/get_adif_header.cpp \
  	src/get_adts_header.cpp \
  	src/get_audio_specific_config.cpp \
- 	src/get_cce.cpp \
  	src/get_dse.cpp \
  	src/get_ele_list.cpp \
  	src/get_ga_specific_config.cpp \
@@ -175,7 +174,7 @@ PV_CFLAGS :=
 # Unfortunately PS causes crash for certain streams:
 # fixed 2012-06-28
 #LOCAL_CFLAGS := -DAAC_PLUS -DHQ_SBR $(PV_CFLAGS)
-LOCAL_CFLAGS := -DAAC_PLUS -DHQ_SBR -DPARAMETRICSTEREO $(PV_CFLAGS)
+LOCAL_CFLAGS := -Wno-narrowing -DAAC_PLUS -DHQ_SBR -DPARAMETRICSTEREO $(PV_CFLAGS)
 
 ifeq ($(TARGET_ARCH),arm)
 	LOCAL_ARM_MODE := arm
